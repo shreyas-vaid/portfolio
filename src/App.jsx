@@ -101,7 +101,7 @@ function App() {
         <h1><a href="https://github.com/shreyas-vaid" className="header-btn">GITHUB</a></h1>
         <h1><a href="https://www.linkedin.com/in/shreyas-vaid-447b20320?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" className="header-btn">LINKEDIN</a></h1>
         <h1><a href="mailto:test@gmail.com" className="header-btn">EMAIL</a></h1>
-        <p><span>SHREYAS</span></p>
+        <h1 className="name">SHREYAS</h1>
       </div>
     </div>
   );
