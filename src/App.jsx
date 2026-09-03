@@ -7,6 +7,7 @@ import BootScreen from "./components/BootScreen";
 import CustomCursor from "./components/CustomCursor";
 import HUDDecoration from "./components/HUDDecoration";
 import Navbar from "./components/Navbar";
+import InteractiveCharacter from "./components/InteractiveCharacter/InteractiveCharacter";
 import Footer from "./components/Footer";
 
 // Sections
@@ -57,6 +58,9 @@ function App() {
 
       {/* JRPG Sticky Navigation Menu */}
       <Navbar activeSection={activeSection} />
+
+      {/* Interactive Chibi Character Companion (Aware of Cursor & Sections) */}
+      <InteractiveCharacter activeSection={activeSection} />
 
       {/* Main Tactical Layout */}
       <main className="main-content-layout">

@@ -1,0 +1,161 @@
+/* Cyberpunk / JRPG Companion Styling */
+
+.chibi-companion-root {
+  position: fixed;
+  bottom: 20px;
+  right: 24px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Character Sprite Container */
+.chibi-sprite-wrap {
+  position: relative;
+  width: 140px;
+  height: 210px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 15px rgba(255, 0, 60, 0.25));
+  animation: chibi-idle-breathe 3.5s ease-in-out infinite;
+}
+
+/* Subtle Idle Breathing Animation */
+@keyframes chibi-idle-breathe {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.008);
+  }
+}
+
+/* Individual Frame */
+.chibi-frame {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.14s ease-out, transform 0.14s ease-out;
+  pointer-events: none;
+}
+
+/* Speech Dialogue Bubble */
+.chibi-speech-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  max-width: 220px;
+  background: rgba(12, 12, 12, 0.95);
+  border: 1px solid var(--accent-red);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 0, 60, 0.3);
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  white-space: normal;
+  pointer-events: none;
+  animation: chibi-bubble-fade 0.25s ease-out;
+}
+
+.chibi-speech-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: 32px;
+  width: 10px;
+  height: 6px;
+  background: var(--accent-red);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+@keyframes chibi-bubble-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Tactical HUD Badge underneath character */
+.chibi-hud-badge {
+  margin-top: 4px;
+  background: rgba(10, 10, 10, 0.85);
+  border: 1px solid var(--border-mid);
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  border-radius: 2px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.chibi-hud-led {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #00ff66;
+  box-shadow: 0 0 6px #00ff66;
+  animation: led-blink 2s infinite ease-in-out;
+}
+
+@keyframes led-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Mobile & Touch Overrides */
+@media (max-width: 768px) {
+  .chibi-companion-root {
+    bottom: 12px;
+    right: 12px;
+    opacity: 0.88;
+  }
+
+  .chibi-sprite-wrap {
+    width: 80px;
+    height: 120px;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+  }
+
+  .chibi-speech-bubble {
+    max-width: 170px;
+    font-size: 0.6rem;
+    padding: 6px 10px;
+    right: -4px;
+  }
+
+  .chibi-hud-badge {
+    display: none; /* Keep clean on phone screens */
+  }
+}
+
+/* Accessibility: Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .chibi-sprite-wrap {
+    animation: none !important;
+  }
+  .chibi-frame {
+    transition: none !important;
+  }
+  .chibi-speech-bubble {
+    animation: none !important;
+  }
+}
