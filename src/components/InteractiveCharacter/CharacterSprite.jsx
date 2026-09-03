@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { SPRITE_ASSETS, ALL_SPRITE_URLS } from "./characterConfig";
 
-export default function CharacterSprite({ viewState = "FRONT" }) {
+export default function CharacterSprite({ viewState = "FRONT", isWalking = false }) {
   const [preloaded, setPreloaded] = useState(false);
 
   // Preload all angle sprites on mount
@@ -17,7 +17,6 @@ export default function CharacterSprite({ viewState = "FRONT" }) {
         }
       };
       img.onerror = () => {
-        // Still proceed even if one fails
         loadedCount++;
         if (loadedCount === ALL_SPRITE_URLS.length) {
           setPreloaded(true);
@@ -29,7 +28,9 @@ export default function CharacterSprite({ viewState = "FRONT" }) {
   const activeSrc = SPRITE_ASSETS[viewState] || SPRITE_ASSETS.FRONT;
 
   return (
-    <div className="chibi-sprite-wrap">
+    <div
+      className={`chibi-sprite-wrap ${isWalking ? "chibi-sprite-walking" : "chibi-sprite-idle"}`}
+    >
       {/* Active Turnaround Frame */}
       <img
         src={activeSrc}
@@ -39,6 +40,9 @@ export default function CharacterSprite({ viewState = "FRONT" }) {
         decoding="async"
         draggable={false}
       />
+
+      {/* Ground Shadow underneath feet */}
+      <div className="chibi-ground-shadow" />
     </div>
   );
 }
