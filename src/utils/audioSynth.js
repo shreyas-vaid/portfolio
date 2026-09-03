@@ -1,10 +1,15 @@
 /**
- * Minecraft / C418-Inspired Ambient Piano & Rhodes Synthesizer for SV Radio
- * Generates peaceful, organic, contemplative piano droplets with gentle acoustic delay
- * and warm wooden resonance — just like "Subwoofer Lullaby", "Sweden", and "Wet Hands".
+ * Distinct Minecraft-Themed Sound Engine for SV Radio
+ * Provides 6 completely different instrument personalities:
+ * 1. UPRIGHT PIANO (C418 Subwoofer Lullaby - warm wooden piano)
+ * 2. GLASS MUSIC BOX (C418 Mice on Venus - delicate crystal music box)
+ * 3. RAIN RHODES (C418 Wet Hands - tremolo electric piano with rain warmth)
+ * 4. SUNSET STRING SWELL (C418 Sweden - lush analog synth strings & warm pads)
+ * 5. PLUCKED KALIMBA (C418 Danny - African wooden thumb piano with percussive plucks)
+ * 6. ETHEREAL CRYSTAL SHIMMER (C418 Far - ambient celestial shimmering drone)
  */
 
-class MinecraftAudioSynthesizer {
+class DistinctAudioSynthesizer {
   constructor() {
     this.ctx = null;
     this.masterGain = null;
@@ -24,35 +29,30 @@ class MinecraftAudioSynthesizer {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       this.ctx = new AudioCtx();
 
-      // Master output gain
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
 
-      // Warm acoustic low-pass filter (cuts harsh digital frequencies)
       this.mainFilter = this.ctx.createBiquadFilter();
       this.mainFilter.type = "lowpass";
-      this.mainFilter.frequency.setValueAtTime(1150, this.ctx.currentTime);
-      this.mainFilter.Q.setValueAtTime(0.7, this.ctx.currentTime);
+      this.mainFilter.frequency.setValueAtTime(1400, this.ctx.currentTime);
 
-      // Acoustic biome space delay (creates the vast, peaceful Minecraft landscape atmosphere)
+      // Vast landscape spatial delay
       this.delayNode = this.ctx.createDelay();
-      this.delayNode.delayTime.setValueAtTime(0.48, this.ctx.currentTime);
+      this.delayNode.delayTime.setValueAtTime(0.42, this.ctx.currentTime);
 
       this.delayFeedback = this.ctx.createGain();
-      this.delayFeedback.gain.setValueAtTime(0.32, this.ctx.currentTime);
+      this.delayFeedback.gain.setValueAtTime(0.3, this.ctx.currentTime);
 
       this.delayFilter = this.ctx.createBiquadFilter();
       this.delayFilter.type = "lowpass";
-      this.delayFilter.frequency.setValueAtTime(800, this.ctx.currentTime);
+      this.delayFilter.frequency.setValueAtTime(850, this.ctx.currentTime);
 
-      // Wire up spatial delay feedback loop
       this.mainFilter.connect(this.delayNode);
       this.delayNode.connect(this.delayFilter);
       this.delayFilter.connect(this.delayFeedback);
       this.delayFeedback.connect(this.delayNode);
       this.delayNode.connect(this.masterGain);
 
-      // Direct signal to master
       this.mainFilter.connect(this.masterGain);
       this.masterGain.connect(this.ctx.destination);
     }
@@ -65,75 +65,211 @@ class MinecraftAudioSynthesizer {
     }
   }
 
-  /**
-   * Synthesize a single organic soft piano / Rhodes note
-   * Uses three harmonic layers: Fundamental (triangle), Bell/Tine (sine overtone), and Warm Body (sub-sine)
-   */
-  playPianoNote(freq, velocity = 0.5, noteDuration = 4.2) {
+  // 1. ACOUSTIC UPRIGHT PIANO (Warm, soft hammer, long singing wooden decay)
+  playPiano(freq, velocity = 0.5, duration = 4.5) {
     if (!this.ctx || !this.isPlaying) return;
-
     const now = this.ctx.currentTime;
 
-    // Layer 1: Warm fundamental piano tone (Triangle wave with gentle felt attack)
-    const oscFund = this.ctx.createOscillator();
-    const gainFund = this.ctx.createGain();
-    oscFund.type = "triangle";
-    oscFund.frequency.setValueAtTime(freq, now);
+    const osc = this.ctx.createOscillator();
+    const sub = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
 
-    // Layer 2: Delicate bell / electric piano tine chime (Sine wave at 2x octave overtone)
-    const oscTine = this.ctx.createOscillator();
-    const gainTine = this.ctx.createGain();
-    oscTine.type = "sine";
-    oscTine.frequency.setValueAtTime(freq * 2, now);
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(freq, now);
 
-    // Layer 3: Deep wooden piano body warmth (Sub-octave)
-    const oscBody = this.ctx.createOscillator();
-    const gainBody = this.ctx.createGain();
-    oscBody.type = "sine";
-    oscBody.frequency.setValueAtTime(freq * 0.5, now);
+    sub.type = "sine";
+    sub.frequency.setValueAtTime(freq * 0.5, now);
 
-    // Envelopes: Soft hammer hit (0.015s attack) followed by long, singing organic acoustic decay
-    const peakGain = 0.18 * velocity;
+    const peak = 0.16 * velocity;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(peak, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(peak * 0.4, now + 0.9);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-    // Fundamental Envelope
-    gainFund.gain.setValueAtTime(0.0001, now);
-    gainFund.gain.linearRampToValueAtTime(peakGain, now + 0.02);
-    gainFund.gain.exponentialRampToValueAtTime(peakGain * 0.45, now + 0.8);
-    gainFund.gain.exponentialRampToValueAtTime(0.0001, now + noteDuration);
+    osc.connect(gain);
+    sub.connect(gain);
+    gain.connect(this.mainFilter);
 
-    // Tine Envelope (decays faster to give initial soft chime)
-    gainTine.gain.setValueAtTime(0.0001, now);
-    gainTine.gain.linearRampToValueAtTime(peakGain * 0.35, now + 0.015);
-    gainTine.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
-
-    // Body Envelope (warm foundation)
-    gainBody.gain.setValueAtTime(0.0001, now);
-    gainBody.gain.linearRampToValueAtTime(peakGain * 0.25, now + 0.04);
-    gainBody.gain.exponentialRampToValueAtTime(0.0001, now + noteDuration * 0.85);
-
-    // Connect layers to acoustic filter
-    oscFund.connect(gainFund);
-    gainFund.connect(this.mainFilter);
-
-    oscTine.connect(gainTine);
-    gainTine.connect(this.mainFilter);
-
-    oscBody.connect(gainBody);
-    gainBody.connect(this.mainFilter);
-
-    // Start & stop oscillators cleanly
-    oscFund.start(now);
-    oscTine.start(now);
-    oscBody.start(now);
-
-    oscFund.stop(now + noteDuration);
-    oscTine.stop(now + 1.5);
-    oscBody.stop(now + noteDuration);
+    osc.start(now);
+    sub.start(now);
+    osc.stop(now + duration);
+    sub.stop(now + duration);
   }
 
-  /**
-   * Play a Minecraft-style peaceful generative phrase
-   */
+  // 2. GLASS MUSIC BOX (High bell crystal, sparkly celesta, zero sub-bass)
+  playMusicBox(freq, velocity = 0.5, duration = 2.4) {
+    if (!this.ctx || !this.isPlaying) return;
+    const now = this.ctx.currentTime;
+
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    // High register
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(freq * 2, now);
+
+    // Bell overtone at 3.0x for metallic crystal chime
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(freq * 6, now);
+
+    const peak = 0.12 * velocity;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(peak, now + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(this.mainFilter);
+
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + duration);
+    osc2.stop(now + duration);
+  }
+
+  // 3. RAIN RHODES (Warm vintage electric piano with tremolo vibrato)
+  playRainRhodes(freq, velocity = 0.5, duration = 5.0) {
+    if (!this.ctx || !this.isPlaying) return;
+    const now = this.ctx.currentTime;
+
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const tremolo = this.ctx.createOscillator();
+    const tremoloGain = this.ctx.createGain();
+    const noteGain = this.ctx.createGain();
+
+    // Detuned warm electric tines
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(freq, now);
+
+    osc2.type = "triangle";
+    osc2.frequency.setValueAtTime(freq * 1.002, now);
+
+    // Tremolo LFO (4.8 Hz gentle modulation)
+    tremolo.type = "sine";
+    tremolo.frequency.setValueAtTime(4.8, now);
+    tremoloGain.gain.setValueAtTime(0.04, now);
+
+    tremolo.connect(tremoloGain);
+    tremoloGain.connect(noteGain.gain);
+
+    const peak = 0.14 * velocity;
+    noteGain.gain.setValueAtTime(0.0001, now);
+    noteGain.gain.linearRampToValueAtTime(peak, now + 0.03);
+    noteGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    osc1.connect(noteGain);
+    osc2.connect(noteGain);
+    noteGain.connect(this.mainFilter);
+
+    tremolo.start(now);
+    osc1.start(now);
+    osc2.start(now);
+
+    tremolo.stop(now + duration);
+    osc1.stop(now + duration);
+    osc2.stop(now + duration);
+  }
+
+  // 4. SUNSET STRING SWELL (Lush analog synth string pads with slow 1.8s swell)
+  playSunsetStrings(freqList, velocity = 0.5, duration = 6.8) {
+    if (!this.ctx || !this.isPlaying) return;
+    const now = this.ctx.currentTime;
+
+    freqList.forEach((freq) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(freq, now);
+
+      const peak = (0.09 / freqList.length) * velocity;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(peak, now + 1.8); // Gentle 1.8s slow swell!
+      gain.gain.setValueAtTime(peak, now + duration * 0.6);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      // String filter: warmth cuts high buzzing
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(550, now);
+      filter.frequency.linearRampToValueAtTime(850, now + 2.0);
+      filter.frequency.linearRampToValueAtTime(450, now + duration);
+
+      osc.connect(gain);
+      gain.connect(filter);
+      filter.connect(this.mainFilter);
+
+      osc.start(now);
+      osc.stop(now + duration);
+    });
+  }
+
+  // 5. PLUCKED KALIMBA (Wooden thumb piano with distinct percussive strike)
+  playKalimba(freq, velocity = 0.5, duration = 2.0) {
+    if (!this.ctx || !this.isPlaying) return;
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const woodThud = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, now);
+
+    // Woody attack click
+    woodThud.type = "triangle";
+    woodThud.frequency.setValueAtTime(freq * 4.2, now);
+
+    const peak = 0.17 * velocity;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(peak, now + 0.005);
+    gain.gain.exponentialRampToValueAtTime(peak * 0.2, now + 0.35);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    osc.connect(gain);
+    woodThud.connect(gain);
+    gain.connect(this.mainFilter);
+
+    osc.start(now);
+    woodThud.start(now);
+    osc.stop(now + duration);
+    woodThud.stop(now + 0.08); // Thud only lasts 80ms
+  }
+
+  // 6. ETHEREAL CRYSTAL SHIMMER (Deep mystical cosmic drone & pitch shifts)
+  playCrystalShimmer(freq, velocity = 0.5, duration = 8.5) {
+    if (!this.ctx || !this.isPlaying) return;
+    const now = this.ctx.currentTime;
+
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(freq, now);
+    osc1.frequency.linearRampToValueAtTime(freq * 1.015, now + duration * 0.5);
+    osc1.frequency.linearRampToValueAtTime(freq, now + duration);
+
+    osc2.type = "triangle";
+    osc2.frequency.setValueAtTime(freq * 2.004, now);
+
+    const peak = 0.12 * velocity;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(peak, now + 1.2);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(this.mainFilter);
+
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + duration);
+    osc2.stop(now + duration);
+  }
+
   playFrequency(freqObj) {
     this.init();
     if (!this.ctx) return;
@@ -146,35 +282,57 @@ class MinecraftAudioSynthesizer {
     this.currentFrequency = freqObj;
     this.isPlaying = true;
 
-    const { scale, patterns, phraseInterval } = freqObj.synthParams;
+    const instrumentType = freqObj.instrument || "piano";
+    const { phrases, phraseInterval } = freqObj.synthParams;
 
-    // Schedule a calm, sparse musical motif
-    const scheduleNextPhrase = () => {
+    const schedulePhrase = () => {
       if (!this.isPlaying) return;
 
-      // Pick a melodic phrase pattern
-      const pattern = patterns[Math.floor(Math.random() * patterns.length)];
+      const currentPhrase = phrases[Math.floor(Math.random() * phrases.length)];
 
-      pattern.forEach((noteDef) => {
-        const timeout = setTimeout(() => {
-          if (!this.isPlaying) return;
+      if (instrumentType === "strings") {
+        // Sunset Strings Pad triggers chord collections
+        currentPhrase.forEach((item) => {
+          const timeout = setTimeout(() => {
+            if (!this.isPlaying) return;
+            this.playSunsetStrings(item.chordFreqs, item.velocity || 0.5, item.duration || 6.5);
+          }, item.delayMs);
+          this.noteTimeouts.push(timeout);
+        });
+      } else {
+        // Individual notes mapped to distinct instruments
+        currentPhrase.forEach((item) => {
+          const timeout = setTimeout(() => {
+            if (!this.isPlaying) return;
 
-          // Calculate note frequency from semitone
-          const semitone = scale[noteDef.noteIndex % scale.length] + (noteDef.octaveOffset || 0) * 12;
-          const noteFreq = freqObj.synthParams.baseFreq * Math.pow(2, semitone / 12);
+            switch (instrumentType) {
+              case "music_box":
+                this.playMusicBox(item.freq, item.velocity, item.duration);
+                break;
+              case "rhodes":
+                this.playRainRhodes(item.freq, item.velocity, item.duration);
+                break;
+              case "kalimba":
+                this.playKalimba(item.freq, item.velocity, item.duration);
+                break;
+              case "shimmer":
+                this.playCrystalShimmer(item.freq, item.velocity, item.duration);
+                break;
+              case "piano":
+              default:
+                this.playPiano(item.freq, item.velocity, item.duration);
+                break;
+            }
+          }, item.delayMs);
 
-          this.playPianoNote(noteFreq, noteDef.velocity || 0.45, noteDef.duration || 4.5);
-        }, noteDef.delayMs);
+          this.noteTimeouts.push(timeout);
+        });
+      }
 
-        this.noteTimeouts.push(timeout);
-      });
-
-      // Schedule the next phrase after peaceful contemplative breathing space
-      this.phraseTimer = setTimeout(scheduleNextPhrase, phraseInterval);
+      this.phraseTimer = setTimeout(schedulePhrase, phraseInterval);
     };
 
-    // Begin first phrase immediately
-    scheduleNextPhrase();
+    schedulePhrase();
   }
 
   stop() {
@@ -188,4 +346,4 @@ class MinecraftAudioSynthesizer {
   }
 }
 
-export const radioSynth = new MinecraftAudioSynthesizer();
+export const radioSynth = new DistinctAudioSynthesizer();
