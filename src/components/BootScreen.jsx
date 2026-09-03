@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playConfirmSound, playHoverSound } from "../utils/sound";
+import { gameState } from "../utils/gameState";
 
 const BOOT_LINES = [
   "SYSTEM INITIALIZING...",
@@ -13,20 +14,24 @@ const BOOT_LINES = [
 ];
 
 export default function BootScreen({ onComplete }) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const isDone = currentStep >= BOOT_LINES.length;
+  const isReturning = gameState.state.visitCount > 1;
+  const currentTier = gameState.getCurrentLevel();
+  const [currentStep, setCurrentStep] = useState(isReturning ? BOOT_LINES.length : 0);
+  const isDone = isReturning || currentStep >= BOOT_LINES.length;
 
   useEffect(() => {
-    if (currentStep < BOOT_LINES.length) {
+    if (!isReturning && currentStep < BOOT_LINES.length) {
       const timer = setTimeout(() => {
         setCurrentStep((prev) => prev + 1);
       }, 260);
       return () => clearTimeout(timer);
     }
-  }, [currentStep]);
+  }, [currentStep, isReturning]);
 
   const handleEnter = useCallback(() => {
     playConfirmSound();
+    gameState.awardXP("first_contact_init", 15, "SYSTEM INITIALIZED");
+    gameState.unlockAchievement("ach-exp-init", "FIRST CONTACT");
     onComplete();
   }, [onComplete]);
 
@@ -133,35 +138,54 @@ export default function BootScreen({ onComplete }) {
 
         {/* Lines Sequence */}
         <div style={{ minHeight: "180px" }}>
-          {BOOT_LINES.slice(0, currentStep).map((line, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, x: -6 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.15 }}
-              style={{
-                fontSize: "0.85rem",
-                color: idx === BOOT_LINES.length - 1 ? "#ff2a55" : "var(--text-muted)",
-                fontWeight: idx === BOOT_LINES.length - 1 ? 700 : 400,
-                marginBottom: "0.45rem",
-                letterSpacing: "0.05em"
-              }}
-            >
-              <span style={{ color: "#ff003c", marginRight: "8px" }}>&gt;</span>
-              {line}
-            </motion.div>
-          ))}
-          {currentStep < BOOT_LINES.length && (
-            <span
-              style={{
-                display: "inline-block",
-                width: "8px",
-                height: "14px",
-                background: "#ff003c",
-                verticalAlign: "middle",
-                animation: "blink 0.8s infinite"
-              }}
-            />
+          {isReturning ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ color: "var(--accent-red-bright)", fontWeight: 700, fontSize: "0.85rem", letterSpacing: "0.1em" }}>
+                ▶ SAVE FILE FOUND // SESSION PRESERVED
+              </div>
+              <div style={{ color: "#ffffff", fontSize: "1.2rem", fontWeight: 700, fontFamily: "var(--font-display)" }}>
+                WELCOME BACK, EXPLORER.
+              </div>
+              <div style={{ color: "var(--text-muted)", fontSize: "0.82rem" }}>
+                RANK: <strong style={{ color: "#ffffff" }}>LVL 0{currentTier.level} // {currentTier.title}</strong> ({gameState.state.xp} XP)
+              </div>
+              <div style={{ color: "var(--text-dim)", fontSize: "0.75rem" }}>
+                {Object.keys(gameState.state.completedActions).length} DISCOVERIES REGISTERED // {gameState.state.unlockedAchievements.length} ACHIEVEMENTS
+              </div>
+            </div>
+          ) : (
+            <>
+              {BOOT_LINES.slice(0, currentStep).map((line, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.15 }}
+                  style={{
+                    fontSize: "0.85rem",
+                    color: idx === BOOT_LINES.length - 1 ? "#ff2a55" : "var(--text-muted)",
+                    fontWeight: idx === BOOT_LINES.length - 1 ? 700 : 400,
+                    marginBottom: "0.45rem",
+                    letterSpacing: "0.05em"
+                  }}
+                >
+                  <span style={{ color: "#ff003c", marginRight: "8px" }}>&gt;</span>
+                  {line}
+                </motion.div>
+              ))}
+              {currentStep < BOOT_LINES.length && (
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: "8px",
+                    height: "14px",
+                    background: "#ff003c",
+                    verticalAlign: "middle",
+                    animation: "blink 0.8s infinite"
+                  }}
+                />
+              )}
+            </>
           )}
         </div>
 
@@ -188,28 +212,42 @@ export default function BootScreen({ onComplete }) {
                   letterSpacing: "0.08em"
                 }}
               >
-                SHREYAS_VAID
+                SHREYAS VAID
               </div>
               <div
                 style={{
-                  fontSize: "0.85rem",
-                  color: "var(--accent-red)",
+                  color: "var(--accent-red-bright)",
+                  fontSize: "0.8rem",
                   letterSpacing: "0.2em",
-                  marginBottom: "1.75rem",
+                  marginTop: "0.25rem",
                   fontWeight: 600
                 }}
               >
                 DEVELOPER / ANALYST
               </div>
 
+              {/* Enter Button */}
               <button
                 onClick={handleEnter}
                 onMouseEnter={playHoverSound}
-                data-cursor="ENTER"
-                className="btn-cyber-primary"
-                style={{ width: "100%", padding: "14px 24px" }}
+                data-cursor="CLICK"
+                className="chamfer-sm"
+                style={{
+                  marginTop: "1.5rem",
+                  background: "#ff003c",
+                  border: "1px solid #ff2a55",
+                  color: "#ffffff",
+                  fontFamily: "var(--font-mono)",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                  letterSpacing: "0.1em",
+                  padding: "10px 28px",
+                  cursor: "pointer",
+                  boxShadow: "0 0 20px rgba(255, 0, 60, 0.4)",
+                  transition: "all 0.2s"
+                }}
               >
-                [ ENTER SYSTEM ]
+                {isReturning ? "[ CONTINUE // ENTER ]" : "[ ENTER SYSTEM ]"}
               </button>
             </motion.div>
           )}

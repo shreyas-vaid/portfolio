@@ -1,0 +1,67 @@
+/* XP Toast Floating Notification */
+
+.xp-toast-container {
+  position: fixed;
+  top: 75px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  max-width: 320px;
+}
+
+.xp-toast-card {
+  background: rgba(12, 12, 16, 0.94);
+  border: 1px solid var(--accent-red);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 0, 60, 0.25);
+  backdrop-filter: blur(12px);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 2px;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  animation: toast-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-mono);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.xp-toast-indicator {
+  width: 4px;
+  height: 24px;
+  background: var(--accent-red-bright);
+  border-radius: 1px;
+  box-shadow: 0 0 8px var(--accent-red-bright);
+}
+
+.xp-toast-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.xp-toast-label {
+  font-size: 0.52rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+.xp-toast-message {
+  font-size: 0.68rem;
+  color: #ffffff;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}

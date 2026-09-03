@@ -1,0 +1,218 @@
+/* Achievements Modal Styling */
+
+.ach-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 4, 6, 0.88);
+  backdrop-filter: blur(12px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: modal-fade-in 0.2s ease-out;
+}
+
+.ach-modal-panel {
+  width: 860px;
+  max-width: 100%;
+  max-height: 85vh;
+  background: rgba(14, 14, 18, 0.96);
+  border: 1px solid var(--accent-red);
+  box-shadow: 0 12px 45px rgba(0, 0, 0, 0.95), 0 0 25px rgba(255, 0, 60, 0.25);
+  display: flex;
+  flex-direction: column;
+  border-radius: 2px;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  font-family: var(--font-mono);
+}
+
+.ach-modal-header {
+  padding: 14px 20px;
+  background: rgba(20, 20, 26, 0.95);
+  border-bottom: 1px solid rgba(255, 0, 60, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ach-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ach-badge {
+  background: rgba(255, 0, 60, 0.15);
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red-bright);
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  font-weight: 700;
+}
+
+.ach-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+}
+
+.ach-close-btn {
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ach-close-btn:hover {
+  border-color: var(--accent-red);
+  color: #ffffff;
+  background: rgba(255, 0, 60, 0.2);
+}
+
+.ach-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: rgba(16, 16, 22, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ach-tabs-group {
+  display: flex;
+  gap: 6px;
+}
+
+.ach-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ach-tab-btn:hover {
+  color: #ffffff;
+}
+
+.ach-tab-btn.active {
+  background: rgba(255, 0, 60, 0.12);
+  border-color: var(--accent-red);
+  color: var(--accent-red-bright);
+  font-weight: 700;
+}
+
+.ach-stat-count {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.ach-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ach-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.ach-item-card {
+  background: rgba(22, 22, 28, 0.9);
+  border: 1px solid var(--border-subtle);
+  padding: 12px;
+  display: flex;
+  gap: 12px;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+.ach-item-card:hover {
+  background: rgba(28, 28, 36, 0.95);
+  border-color: var(--accent-red-bright);
+}
+
+.ach-item-card.unlocked {
+  border-left: 2px solid var(--accent-red);
+}
+
+.ach-item-card.locked {
+  opacity: 0.5;
+  filter: grayscale(0.8);
+}
+
+.ach-card-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.ach-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.ach-card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ach-type-badge {
+  font-size: 0.52rem;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+}
+
+.ach-xp-badge {
+  font-size: 0.58rem;
+  color: var(--accent-red-bright);
+  font-weight: 700;
+}
+
+.ach-card-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+}
+
+.ach-card-desc {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.ach-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.55rem;
+  color: var(--text-dim);
+  margin-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 4px;
+}
+
+.ach-status {
+  color: #00ff66;
+  font-weight: 700;
+}
+
+.ach-item-card.locked .ach-status {
+  color: var(--accent-red-bright);
+}

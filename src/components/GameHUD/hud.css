@@ -1,0 +1,181 @@
+/* Game HUD Styling */
+
+.game-hud-root {
+  position: fixed;
+  top: 14px;
+  right: 20px;
+  z-index: 90;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-family: var(--font-mono);
+  user-select: none;
+  animation: hud-slide-down 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes hud-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hud-collapse-toggle {
+  background: rgba(12, 12, 16, 0.94);
+  border: 1px solid var(--border-mid);
+  padding: 5px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+.hud-collapse-toggle:hover {
+  border-color: var(--accent-red);
+  color: #ffffff;
+}
+
+.hud-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-red-bright);
+  box-shadow: 0 0 6px var(--accent-red-bright);
+}
+
+.hud-toggle-label {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.hud-panel-content {
+  background: rgba(10, 10, 14, 0.95);
+  border: 1px solid var(--border-mid);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 0, 60, 0.15);
+  backdrop-filter: blur(14px);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: 2px;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  min-width: 290px;
+}
+
+.hud-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hud-rank-block {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-lvl-tag {
+  background: var(--accent-red);
+  color: #ffffff;
+  font-size: 0.55rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 1px;
+}
+
+.hud-rank-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+}
+
+.hud-discoveries-tag {
+  font-size: 0.54rem;
+  color: var(--accent-red-bright);
+  font-weight: 700;
+}
+
+.hud-xp-track {
+  height: 4px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.hud-xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-red-dark), var(--accent-red-bright));
+  transition: width 0.3s ease;
+}
+
+.hud-xp-numbers {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.52rem;
+  color: var(--text-dim);
+}
+
+.hud-actions-row {
+  display: flex;
+  gap: 5px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.hud-btn {
+  background: rgba(22, 22, 28, 0.9);
+  border: 1px solid var(--border-mid);
+  color: #e4e4e7;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  padding: 3px 6px;
+  cursor: pointer;
+  border-radius: 1px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.hud-btn:hover {
+  border-color: var(--accent-red);
+  color: #ffffff;
+  background: rgba(255, 0, 60, 0.15);
+}
+
+.hud-btn.theme-btn {
+  border-color: #a855f7;
+  color: #d8b4fe;
+}
+
+.hud-btn.theme-btn:hover {
+  background: rgba(168, 85, 247, 0.2);
+  color: #ffffff;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .game-hud-root {
+    top: 60px;
+    right: 12px;
+  }
+
+  .hud-panel-content {
+    min-width: 240px;
+    padding: 6px 10px;
+  }
+
+  .hud-btn {
+    font-size: 0.52rem;
+    padding: 2px 5px;
+  }
+}

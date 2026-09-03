@@ -6,13 +6,24 @@ import {
   calculateCursorGazeDirection,
   SECTION_DIALOGUES
 } from "./characterConfig";
+import { gameState } from "../../utils/gameState";
 import "./character.css";
 
 export default function InteractiveCharacter({ activeSection = "hero" }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [viewState, setViewState] = useState("FRONT");
   const [characterPose, setCharacterPose] = useState("FRONT");
-  const [dialogue, setDialogue] = useState("SV-01 ONLINE. CLICK TO TALK!");
+  const [dialogue, setDialogue] = useState(() => {
+    if (gameState.state.visitCount > 1) {
+      const returnQuotes = [
+        "OH. YOU'RE BACK. WELCOME.",
+        "YOU STILL HAVEN'T FOUND EVERYTHING.",
+        "WELCOME BACK, EXPLORER."
+      ];
+      return returnQuotes[Math.floor(Math.random() * returnQuotes.length)];
+    }
+    return "SV-01 ONLINE. CLICK TO TALK!";
+  });
   const [showCallout, setShowCallout] = useState(true);
 
   const anchorRef = useRef(null);
@@ -23,6 +34,37 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
         window.matchMedia("(pointer: coarse)").matches ||
         window.innerWidth <= 768)
   );
+
+  // Narrator reaction to game events (XP, items, achievements, secrets)
+  useEffect(() => {
+    const unsub = gameState.subscribeToasts((toast) => {
+      if (toast.message.includes("VIOLET")) {
+        setDialogue("...YOU WEREN'T SUPPOSED TO FIND THAT.");
+      } else if (toast.message.includes("UNLOCKED")) {
+        setDialogue("ACHIEVEMENT UNLOCKED!");
+      } else if (toast.message.includes("ITEM")) {
+        setDialogue("YOU FOUND SOMETHING.");
+      } else if (toast.message.includes("XP")) {
+        setDialogue("NICE. YOU'RE EXPLORING.");
+      }
+    });
+    return unsub;
+  }, []);
+
+  // Long dwell hint: if visitor stays on a section for > 42s
+  useEffect(() => {
+    const dwellTimer = setTimeout(() => {
+      if (!isChatOpen) {
+        const hints = [
+          "STILL EXPLORING? CHECK THE INVENTORY.",
+          "THERE ARE A FEW SECRETS AROUND HERE.",
+          "CURIOUS? TRY THE DEVELOPER TERMINAL."
+        ];
+        setDialogue(hints[Math.floor(Math.random() * hints.length)]);
+      }
+    }, 42000);
+    return () => clearTimeout(dwellTimer);
+  }, [activeSection, isChatOpen]);
 
   // Update speech bubble when visitor scrolls to new sections (only when chat is closed)
   useEffect(() => {
