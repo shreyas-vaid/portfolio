@@ -1,4 +1,4 @@
-/* Cyberpunk / JRPG Roaming Companion Styling */
+/* Ghibli x Pokémon Overworld Miniature Companion Styling */
 
 /* Roaming Master Wrapper — Fullscreen pointer-events pass-through layer */
 .chibi-roam-layer {
@@ -20,18 +20,18 @@
   align-items: center;
   pointer-events: none;
   will-change: transform;
-  transition: transform 0.05s linear;
+  transition: transform 0.04s linear;
 }
 
-/* Character Sprite Container */
+/* Character Sprite Container — Small, cute, Pokémon overworld / Ghibli scale */
 .chibi-sprite-wrap {
   position: relative;
-  width: 130px;
-  height: 195px;
+  width: 60px;
+  height: 84px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 12px rgba(255, 0, 60, 0.2));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 6px rgba(255, 0, 60, 0.18));
 }
 
 /* Subtle Idle Breathing Animation */
@@ -44,55 +44,54 @@
     transform: translateY(0) scale(1);
   }
   50% {
-    transform: translateY(-2.5px) scale(1.008);
+    transform: translateY(-1.5px) scale(1.01);
   }
 }
 
-/* Walking Step Cycle Bobbing Animation */
+/* Walking Step Cycle Bobbing Animation (Cute Pokémon overworld step) */
 .chibi-sprite-walking {
-  animation: chibi-walk-bob 0.5s ease-in-out infinite alternate;
+  animation: chibi-walk-bob 0.38s ease-in-out infinite alternate;
 }
 
 @keyframes chibi-walk-bob {
   0% {
-    transform: translateY(0) rotate(-1.5deg);
+    transform: translateY(0) rotate(-2deg);
   }
   50% {
-    transform: translateY(-4px) rotate(0deg);
+    transform: translateY(-3px) rotate(0deg);
   }
   100% {
-    transform: translateY(0) rotate(1.5deg);
+    transform: translateY(0) rotate(2deg);
   }
 }
 
-/* Ground Shadow anchoring character to the page */
+/* Soft Ground Shadow underneath feet */
 .chibi-ground-shadow {
   position: absolute;
-  bottom: 4px;
-  width: 70px;
-  height: 12px;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.6) 0%, rgba(255, 0, 60, 0.1) 40%, transparent 70%);
+  bottom: 2px;
+  width: 36px;
+  height: 7px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55) 0%, rgba(255, 0, 60, 0.12) 45%, transparent 75%);
   border-radius: 50%;
   pointer-events: none;
-  transition: transform 0.2s ease;
 }
 
 .chibi-sprite-walking + .chibi-ground-shadow {
-  animation: shadow-bob 0.5s ease-in-out infinite alternate;
+  animation: shadow-bob 0.38s ease-in-out infinite alternate;
 }
 
 @keyframes shadow-bob {
   0% {
     transform: scale(1);
-    opacity: 0.6;
+    opacity: 0.55;
   }
   50% {
     transform: scale(0.85);
-    opacity: 0.4;
+    opacity: 0.35;
   }
   100% {
     transform: scale(1);
-    opacity: 0.6;
+    opacity: 0.55;
   }
 }
 
@@ -105,41 +104,42 @@
   height: 100%;
   object-fit: contain;
   pointer-events: none;
-  transition: opacity 0.12s ease-out;
+  image-rendering: auto;
+  transition: opacity 0.1s ease-out;
 }
 
-/* Speech Dialogue Bubble */
+/* Cute Miniature Speech Dialogue Bubble */
 .chibi-speech-bubble {
   position: absolute;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 5px);
   left: 50%;
   transform: translateX(-50%);
-  min-width: 160px;
-  max-width: 220px;
-  background: rgba(10, 10, 10, 0.95);
+  min-width: 120px;
+  max-width: 170px;
+  background: rgba(12, 12, 14, 0.94);
   border: 1px solid var(--accent-red);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.85), 0 0 12px rgba(255, 0, 60, 0.35);
-  padding: 7px 11px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.8), 0 0 8px rgba(255, 0, 60, 0.25);
+  padding: 4px 8px;
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.58rem;
   color: #ffffff;
-  letter-spacing: 0.05em;
-  line-height: 1.35;
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  border-radius: 3px;
   white-space: normal;
   pointer-events: none;
   text-align: center;
-  animation: chibi-bubble-fade 0.25s ease-out;
+  animation: chibi-bubble-fade 0.2s ease-out;
 }
 
 .chibi-speech-bubble::after {
   content: "";
   position: absolute;
-  bottom: -6px;
+  bottom: -4px;
   left: 50%;
   transform: translateX(-50%);
-  width: 10px;
-  height: 6px;
+  width: 8px;
+  height: 4px;
   background: var(--accent-red);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
@@ -147,7 +147,7 @@
 @keyframes chibi-bubble-fade {
   from {
     opacity: 0;
-    transform: translate(-50%, 8px) scale(0.95);
+    transform: translate(-50%, 6px) scale(0.92);
   }
   to {
     opacity: 1;
@@ -155,47 +155,9 @@
   }
 }
 
-/* Tactical HUD Telemetry Badge */
-.chibi-hud-badge {
-  margin-top: 6px;
-  background: rgba(8, 8, 8, 0.9);
-  border: 1px solid var(--border-mid);
-  padding: 3px 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
-  border-radius: 2px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  white-space: nowrap;
-}
-
-.chibi-hud-led {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #00ff66;
-  box-shadow: 0 0 6px #00ff66;
-  animation: led-blink 2s infinite ease-in-out;
-}
-
-.chibi-hud-led.walking {
-  background: #ffaa00;
-  box-shadow: 0 0 6px #ffaa00;
-}
-
-@keyframes led-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-
 /* Mobile & Touch Overrides */
 @media (max-width: 768px) {
   .chibi-actor {
-    /* Anchored safely on mobile without roaming across small screen content */
     top: auto !important;
     left: auto !important;
     bottom: 12px !important;
@@ -204,16 +166,15 @@
   }
 
   .chibi-sprite-wrap {
-    width: 80px;
-    height: 120px;
-    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
+    width: 46px;
+    height: 64px;
   }
 
   .chibi-speech-bubble {
-    max-width: 170px;
-    font-size: 0.6rem;
-    padding: 6px 10px;
-    bottom: calc(100% + 4px);
+    max-width: 140px;
+    font-size: 0.55rem;
+    padding: 4px 6px;
+    bottom: calc(100% + 3px);
     right: 0;
     left: auto;
     transform: none;
@@ -221,17 +182,13 @@
 
   .chibi-speech-bubble::after {
     left: auto;
-    right: 24px;
+    right: 16px;
     transform: none;
   }
 
   .chibi-ground-shadow {
-    width: 50px;
-    height: 8px;
-  }
-
-  .chibi-hud-badge {
-    display: none;
+    width: 28px;
+    height: 5px;
   }
 }
 
