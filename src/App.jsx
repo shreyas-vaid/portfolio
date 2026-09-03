@@ -88,13 +88,6 @@ function App() {
         <p>●</p>
       </nav>
 
-      <footer>
-        <p>This</p>
-        <p>is</p>
-        <p>a</p>
-        <p>Short Portfolio</p>
-        <p>:)</p>
-      </footer>
 
       <div className="header">
         <h1><a href="https://www.instagram.com/rewritten_shreyas?igsh=cHd1anR2cmltMDd2" className="header-btn">INSTAGRAM</a></h1>

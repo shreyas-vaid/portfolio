@@ -50,8 +50,7 @@ body {
   opacity: 0.85;
 }
 
-nav,
-footer {
+nav {
   width: 100vw;
   padding: 1.5em;
   display: flex;
@@ -59,11 +58,6 @@ footer {
   color: #ffffff;
   mix-blend-mode: difference;
   z-index: 2;
-}
-
-footer {
-  justify-content: flex-end;
-  gap: 1em;
 }
 
 .header {
