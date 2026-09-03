@@ -1,102 +1,64 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* App.css — Cyberpunk / JRPG Layout & Animations */
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  .show-mobile-only {
+    display: flex !important;
+  }
 }
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-  background: #060606;
-  overflow: hidden;
+@media (min-width: 769px) {
+  .show-mobile-only {
+    display: none !important;
+  }
 }
 
-.hero {
+/* Cursor Blink */
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Subtle Glowing Pulse */
+@keyframes cyber-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255, 0, 60, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 0, 60, 0.5);
+  }
+}
+
+.pulse-red {
+  animation: cyber-pulse 3s infinite ease-in-out;
+}
+
+/* General Layout Containers */
+.main-content-layout {
   position: relative;
-  width: 100vw;
-  height: 100vh;
-  background: #15041c;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  clip-path: polygon(0% 45%, 0% 45%, 0% 55%, 0% 55%);
+  z-index: 10;
+  padding-top: 36px; /* offset for HUD top telemetry bar */
 }
 
-.progress-bar {
-  position: absolute;
-  top: 50%;
-  left: 0%;
-  transform: translateY(-50%);
-  width: 25vw;
-  padding: 2em;
-  display: flex;
-  justify-content: space-between;
-  color: #ffffff;
+/* Form inputs & interactive styles */
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
 }
 
-.video-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(1.5) rotate(10deg);
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.video-container video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.85;
-}
-
-nav {
-  width: 100vw;
-  padding: 1.5em;
-  display: flex;
-  justify-content: space-between;
-  color: #ffffff;
-  mix-blend-mode: difference;
-  z-index: 2;
-}
-
-.header {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.header h1 {
-  text-transform: uppercase;
-  font-size: 7vw;
-  color: white;
-}
-
-.header-btn {
-  text-decoration: none;
-  color: white;
-  transition: 0.3s;
-}
-
-.header-btn:hover {
-  color: #f1b512;
-  transform: scale(1.05);
-}
-
-.header span {
-  display: block;
-  transform: translateY(100%);
-}
-.name {
-  font-size: 32px;
-  font-weight: 700;
-  text-align: center;
-  margin-top: 20px;
-  background: linear-gradient(90deg, #00f5ff, #8a2be2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent-red-bright);
+  outline-offset: 2px;
 }
