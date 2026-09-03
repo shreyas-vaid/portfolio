@@ -199,7 +199,7 @@ export default function BootScreen({ onComplete }) {
                   fontWeight: 600
                 }}
               >
-                DEVELOPER / CREATOR
+                DEVELOPER / ANALYST
               </div>
 
               <button

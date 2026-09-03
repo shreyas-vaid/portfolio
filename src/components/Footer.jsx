@@ -19,6 +19,7 @@ export default function Footer() {
       }}
     >
       <div
+        className="footer-inner-mobile"
         style={{
           maxWidth: "1200px",
           margin: "0 auto",
@@ -66,7 +67,7 @@ export default function Footer() {
               marginBottom: "0.75rem"
             }}
           >
-            DEVELOPER / CREATOR // FULL STACK & DATA
+            DEVELOPER / ANALYST // FULL STACK & DATA
           </div>
 
           <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-dim)" }}>
@@ -75,7 +76,7 @@ export default function Footer() {
         </div>
 
         {/* Right: Quick Links & Back to Top */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "1rem" }}>
+        <div className="footer-right-mobile" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "1rem" }}>
           <div style={{ display: "flex", gap: "16px" }}>
             {socialLinks.map((link) => (
               <a

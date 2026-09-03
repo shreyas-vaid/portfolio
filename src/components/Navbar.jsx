@@ -39,7 +39,7 @@ export default function Navbar({ activeSection }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 2rem",
+          padding: "0 clamp(1rem, 3vw, 2rem)",
           zIndex: 75
         }}
       >
@@ -180,14 +180,15 @@ export default function Navbar({ activeSection }) {
             background: "var(--bg-panel)",
             border: "1px solid var(--border-mid)",
             color: "var(--text-primary)",
-            padding: "8px",
+            width: "42px",
+            height: "42px",
             display: "none",
             alignItems: "center",
             justifyContent: "center",
             cursor: "pointer"
           }}
         >
-          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </nav>
 
@@ -197,14 +198,15 @@ export default function Navbar({ activeSection }) {
           style={{
             position: "fixed",
             inset: 0,
-            top: "100px",
+            top: "96px",
             background: "rgba(8, 8, 8, 0.98)",
-            backdropFilter: "blur(16px)",
+            backdropFilter: "blur(20px)",
             zIndex: 74,
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            padding: "2rem"
+            padding: "clamp(1.25rem, 5vw, 2.5rem)",
+            overflowY: "auto"
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>

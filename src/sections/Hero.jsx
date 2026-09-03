@@ -31,11 +31,12 @@ export default function Hero() {
       }}
     >
       <div
+        className="cyber-grid-auto-fit"
         style={{
           width: "100%",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: "3.5rem",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
+          gap: "2.5rem",
           alignItems: "center"
         }}
       >
@@ -124,7 +125,7 @@ export default function Hero() {
           </p>
 
           {/* Primary Action CTAs */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", alignItems: "center" }}>
+          <div className="hero-cta-group" style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", alignItems: "center" }}>
             <button
               onClick={scrollToIdentity}
               onMouseEnter={playHoverSound}

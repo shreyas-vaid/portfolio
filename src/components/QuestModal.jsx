@@ -63,7 +63,7 @@ export default function QuestModal({ quest, onClose }) {
             background: "var(--bg-surface)",
             border: "1px solid var(--accent-red)",
             boxShadow: "0 0 50px rgba(255, 0, 60, 0.2)",
-            padding: "2.25rem",
+            padding: "clamp(1.25rem, 4vw, 2.25rem)",
             color: "var(--text-primary)"
           }}
           className="chamfer-sm"
@@ -118,7 +118,8 @@ export default function QuestModal({ quest, onClose }) {
                 background: "transparent",
                 border: "1px solid var(--border-mid)",
                 color: "var(--text-muted)",
-                padding: "6px",
+                width: "38px",
+                height: "38px",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -134,12 +135,12 @@ export default function QuestModal({ quest, onClose }) {
                 e.currentTarget.style.color = "var(--text-muted)";
               }}
             >
-              <X size={18} />
+              <X size={20} />
             </button>
           </div>
 
           {/* Title & XP */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
             <div>
               <h2
                 style={{

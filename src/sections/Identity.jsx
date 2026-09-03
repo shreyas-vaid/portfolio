@@ -26,9 +26,10 @@ export default function Identity() {
 
       {/* Two-Column Layout */}
       <div
+        className="cyber-grid-auto-fit"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
           gap: "2.5rem",
           alignItems: "start"
         }}

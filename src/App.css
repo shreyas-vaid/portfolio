@@ -1,4 +1,22 @@
-/* App.css — Cyberpunk / JRPG Layout & Animations */
+/* App.css — Cyberpunk / JRPG Layout & Mobile-Perfect Responsive Styles */
+
+/* Base Root & Overflow Prevention for Mobile */
+html,
+body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color: rgba(255, 0, 60, 0.15);
+}
+
+#root,
+.app-root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden !important;
+  position: relative;
+}
 
 /* Responsive Utilities */
 @media (max-width: 768px) {
@@ -8,21 +26,74 @@
   .show-mobile-only {
     display: flex !important;
   }
+
+  /* Adjust section padding for mobile so content doesn't feel cramped */
+  section {
+    padding-left: clamp(1rem, 4vw, 1.5rem) !important;
+    padding-right: clamp(1rem, 4vw, 1.5rem) !important;
+    padding-top: 4.5rem !important;
+    padding-bottom: 3.5rem !important;
+  }
+
+  #hero {
+    padding-top: 7rem !important;
+    padding-bottom: 3.5rem !important;
+    min-height: auto !important;
+  }
+
+  /* Prevent iOS Safari from auto-zooming on focus */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Full-width touch-friendly action buttons */
+  .hero-cta-group {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .hero-cta-group button,
+  .hero-cta-group a {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 14px 20px !important;
+    min-height: 48px !important;
+  }
+
+  /* Ensure card grids collapse gracefully without horizontal overflow */
+  .cyber-grid-auto-fit {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  /* Stat items breathing room on phone */
+  .stat-row-mobile {
+    gap: 6px !important;
+  }
+
+  /* Footer on mobile aligns cleanly */
+  .footer-inner-mobile {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 2rem !important;
+  }
+
+  .footer-right-mobile {
+    align-items: flex-start !important;
+    width: 100% !important;
+  }
+
+  .footer-right-mobile button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
 }
 
 @media (min-width: 769px) {
   .show-mobile-only {
     display: none !important;
-  }
-}
-
-/* Cursor Blink */
-@keyframes blink {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
   }
 }
 
@@ -45,6 +116,9 @@
   position: relative;
   z-index: 10;
   padding-top: 36px; /* offset for HUD top telemetry bar */
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* Form inputs & interactive styles */
@@ -61,4 +135,12 @@ input:focus-visible,
 textarea:focus-visible {
   outline: 2px solid var(--accent-red-bright);
   outline-offset: 2px;
+}
+
+/* Safe area insets for notched phones (iPhone X through 16 Pro) */
+@supports (padding: max(0px)) {
+  .main-content-layout {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
 }
