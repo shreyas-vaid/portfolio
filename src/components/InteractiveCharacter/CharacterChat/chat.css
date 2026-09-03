@@ -1,0 +1,321 @@
+/* Cyberpunk × JRPG SV-01 Companion Chat Terminal */
+
+.chibi-chat-window {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  right: 0;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  height: 520px;
+  max-height: calc(100vh - 120px);
+  background: rgba(10, 10, 14, 0.96);
+  border: 1px solid var(--accent-red);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.9), 0 0 20px rgba(255, 0, 60, 0.25);
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(16px);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  z-index: 100;
+  pointer-events: auto;
+  animation: chat-window-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-mono);
+}
+
+@keyframes chat-window-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Chat Header */
+.chibi-chat-header {
+  padding: 10px 14px;
+  background: rgba(18, 18, 22, 0.95);
+  border-bottom: 1px solid rgba(255, 0, 60, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.chat-header-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-header-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #00ff66;
+  box-shadow: 0 0 8px #00ff66;
+  animation: chat-led-pulse 2s infinite ease-in-out;
+}
+
+@keyframes chat-led-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.chat-header-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.1em;
+}
+
+.chat-header-sub {
+  font-size: 0.58rem;
+  color: var(--accent-red-bright);
+  font-weight: 600;
+}
+
+.chat-close-btn {
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chat-close-btn:hover {
+  border-color: var(--accent-red);
+  color: #ffffff;
+  background: rgba(255, 0, 60, 0.15);
+}
+
+/* Chat Messages Area */
+.chibi-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-red) rgba(20, 20, 25, 0.5);
+}
+
+.chibi-chat-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chibi-chat-messages::-webkit-scrollbar-thumb {
+  background: var(--accent-red);
+  border-radius: 2px;
+}
+
+/* Message Rows */
+.chat-message-row {
+  display: flex;
+  width: 100%;
+}
+
+.chat-message-row.bot-row {
+  justify-content: flex-start;
+}
+
+.chat-message-row.user-row {
+  justify-content: flex-end;
+}
+
+.chat-message-bubble {
+  max-width: 88%;
+  padding: 8px 11px;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  border-radius: 2px;
+}
+
+.bot-bubble {
+  background: rgba(22, 22, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 2px solid var(--accent-red);
+  color: #e4e4e7;
+}
+
+.user-bubble {
+  background: rgba(255, 0, 60, 0.12);
+  border: 1px solid var(--accent-red);
+  color: #ffffff;
+}
+
+.chat-message-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.56rem;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+.chat-sender-tag {
+  color: var(--accent-red-bright);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.user-bubble .chat-sender-tag {
+  color: #ffffff;
+}
+
+.chat-timestamp {
+  color: var(--text-dim);
+  font-size: 0.52rem;
+}
+
+.chat-message-body {
+  word-break: break-word;
+}
+
+/* Thinking Indicator */
+.chat-thinking-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6rem;
+  color: var(--accent-red-bright);
+  padding: 6px 11px;
+  background: rgba(20, 20, 26, 0.8);
+  border-left: 2px solid var(--accent-red);
+  animation: pulse-glow 1s infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* Suggested Questions Chips */
+.chat-suggestions-container {
+  padding: 6px 12px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(14, 14, 18, 0.85);
+}
+
+.chat-suggestions-label {
+  font-size: 0.54rem;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  margin-bottom: 5px;
+}
+
+.chat-suggestions-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.chat-suggestions-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.chat-suggestion-chip {
+  flex-shrink: 0;
+  background: rgba(26, 26, 32, 0.9);
+  border: 1px solid var(--border-mid);
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.chat-suggestion-chip:hover:not(:disabled) {
+  border-color: var(--accent-red);
+  background: rgba(255, 0, 60, 0.18);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Input Bar */
+.chibi-chat-input-bar {
+  padding: 8px 12px;
+  background: rgba(14, 14, 18, 0.98);
+  border-top: 1px solid rgba(255, 0, 60, 0.3);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.chat-input-field {
+  flex: 1;
+  background: rgba(6, 6, 8, 0.9);
+  border: 1px solid var(--border-mid);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 7px 10px;
+  outline: none;
+  border-radius: 2px;
+  transition: border-color 0.15s ease;
+}
+
+.chat-input-field:focus {
+  border-color: var(--accent-red);
+  box-shadow: 0 0 8px rgba(255, 0, 60, 0.25);
+}
+
+.chat-input-field::placeholder {
+  color: var(--text-dim);
+  font-size: 0.62rem;
+}
+
+.chat-send-btn {
+  background: var(--accent-red);
+  border: 1px solid var(--accent-red-bright);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 7px 12px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-send-btn:hover:not(:disabled) {
+  background: #ff2255;
+  box-shadow: 0 0 10px rgba(255, 0, 60, 0.4);
+}
+
+.chat-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .chibi-chat-window {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100vw;
+    max-width: 100vw;
+    height: 72vh;
+    max-height: 80vh;
+    border-radius: 8px 8px 0 0;
+    clip-path: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+  }
+}
