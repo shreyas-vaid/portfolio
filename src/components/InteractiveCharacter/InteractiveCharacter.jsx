@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import CharacterSprite from "./CharacterSprite";
 import CharacterDialogue from "./CharacterDialogue";
 import {
   calculateWalkDirection,
   calculateCursorGazeDirection,
   SECTION_DIALOGUES,
-  HOVER_DIALOGUES,
-  SECTION_ROAM_ZONES
+  HOVER_DIALOGUES
 } from "./characterConfig";
 import "./character.css";
 
@@ -17,18 +16,19 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
   const [isWalking, setIsWalking] = useState(false);
   const [dialogue, setDialogue] = useState(SECTION_DIALOGUES.hero || "SYSTEM ONLINE.");
 
-  // Refs for animation loop & AI state
+  // Animation & tracking refs
   const posRef = useRef({ x: 0, y: 0 });
   const targetPosRef = useRef({ x: 0, y: 0 });
   const cursorRef = useRef({ x: 0, y: 0 });
-  const aiStateRef = useRef("IDLE"); // "IDLE" | "WALKING"
-  const waitTimerRef = useRef(null);
+  const isWalkingRef = useRef(false);
   const animFrameRef = useRef(null);
   const lastTimeRef = useRef(performance.now());
   const lastSectionRef = useRef(activeSection);
+  const lastMouseMoveTime = useRef(performance.now());
+  const idleStrollTimer = useRef(null);
   const initializedRef = useRef(false);
 
-  // Check touch / mobile device
+  // Check touch / mobile screen
   const isTouchDevice = useRef(
     typeof window !== "undefined" &&
       ("ontouchstart" in window ||
@@ -37,32 +37,33 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
         window.innerWidth <= 768)
   );
 
-  // Helper to pick a safe roaming point in viewport
-  const pickDestination = useCallback((sectionKey) => {
+  // Helper to calculate a safe follow destination near the cursor across the ENTIRE viewport
+  const computeFollowTarget = (cursorX, cursorY) => {
     if (typeof window === "undefined") return { x: 300, y: 300 };
 
     const winW = window.innerWidth;
     const winH = window.innerHeight;
 
-    const safeMarginX = Math.min(100, winW * 0.1);
-    const safeMarginY = Math.min(140, winH * 0.15);
+    // Follow companion offset: sit slightly to the side and slightly below/above the cursor
+    // If cursor is on the left half, character trails to the right (+90px)
+    // If cursor is on the right half, character trails to the left (-160px)
+    const offsetX = cursorX < winW * 0.5 ? 90 : -170;
+    const offsetY = cursorY < winH * 0.5 ? 40 : -80;
 
-    const zones = SECTION_ROAM_ZONES[sectionKey] || SECTION_ROAM_ZONES.hero;
-    const chosenZone = zones[Math.floor(Math.random() * zones.length)];
+    let targetX = cursorX + offsetX;
+    let targetY = cursorY + offsetY;
 
-    // Add gentle random jitter around the zone point (+/- 60px)
-    const jitterX = (Math.random() - 0.5) * 120;
-    const jitterY = (Math.random() - 0.5) * 80;
+    // Safe clamp across the ENTIRE viewport (full page roaming)
+    const minX = 30;
+    const maxX = winW - 160;
+    const minY = 60;
+    const maxY = winH - 220;
 
-    let targetX = chosenZone.x * winW + jitterX;
-    let targetY = chosenZone.y * winH + jitterY;
-
-    // Clamp inside safe viewport bounds
-    targetX = Math.max(safeMarginX, Math.min(winW - safeMarginX - 120, targetX));
-    targetY = Math.max(safeMarginY, Math.min(winH - safeMarginY - 140, targetY));
+    targetX = Math.max(minX, Math.min(maxX, targetX));
+    targetY = Math.max(minY, Math.min(maxY, targetY));
 
     return { x: targetX, y: targetY };
-  }, []);
+  };
 
   // Initialize position on mount
   useEffect(() => {
@@ -71,8 +72,9 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
     const winW = window.innerWidth;
     const winH = window.innerHeight;
 
-    const startX = winW * 0.82;
-    const startY = winH * 0.70;
+    // Start in comfortable lower-right area
+    const startX = Math.max(50, winW * 0.75);
+    const startY = Math.max(100, winH * 0.65);
 
     posRef.current = { x: startX, y: startY };
     targetPosRef.current = { x: startX, y: startY };
@@ -91,105 +93,69 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
       if (text) {
         setDialogue(text);
       }
-
-      // If desktop, guide character to explore near the new section
-      if (!isTouchDevice.current && initializedRef.current) {
-        const nextTarget = pickDestination(activeSection);
-        targetPosRef.current = nextTarget;
-        aiStateRef.current = "WALKING";
-        setIsWalking(true);
-
-        const dx = nextTarget.x - posRef.current.x;
-        const dy = nextTarget.y - posRef.current.y;
-        setViewState(calculateWalkDirection(dx, dy));
-      }
     }
-  }, [activeSection, pickDestination]);
+  }, [activeSection]);
 
-  // Main Movement & Autonomous Behavior Loop
+  // Main Movement & Cursor Tracking Loop
   useEffect(() => {
     if (isTouchDevice.current) {
       setViewState("FRONT");
       return;
     }
 
-    // Schedule next autonomous stroll
-    const scheduleNextRoam = () => {
-      if (waitTimerRef.current) clearTimeout(waitTimerRef.current);
-
-      // Random wait between 3.5 and 7 seconds
-      const delay = 3500 + Math.random() * 3500;
-      waitTimerRef.current = setTimeout(() => {
-        if (aiStateRef.current === "IDLE") {
-          const nextTarget = pickDestination(lastSectionRef.current);
-          const dist = Math.hypot(
-            nextTarget.x - posRef.current.x,
-            nextTarget.y - posRef.current.y
-          );
-
-          // Only walk if distance is meaningful (> 60px)
-          if (dist > 60) {
-            targetPosRef.current = nextTarget;
-            aiStateRef.current = "WALKING";
-            setIsWalking(true);
-
-            const dx = nextTarget.x - posRef.current.x;
-            const dy = nextTarget.y - posRef.current.y;
-            setViewState(calculateWalkDirection(dx, dy));
-          } else {
-            // Pick again slightly later
-            scheduleNextRoam();
-          }
-        }
-      }, delay);
-    };
-
-    scheduleNextRoam();
-
-    // 60FPS animation loop for smooth movement and gaze updates
+    // 60FPS animation loop
     const loop = (now) => {
       const dt = Math.min((now - lastTimeRef.current) / 1000, 0.1);
       lastTimeRef.current = now;
 
-      if (aiStateRef.current === "WALKING") {
-        const dx = targetPosRef.current.x - posRef.current.x;
-        const dy = targetPosRef.current.y - posRef.current.y;
-        const dist = Math.hypot(dx, dy);
+      const charCenterX = posRef.current.x + 65;
+      const charCenterY = posRef.current.y + 100;
 
-        // Gentle walking speed (approx 75 px/second)
-        const speed = 75;
+      const dx = targetPosRef.current.x - posRef.current.x;
+      const dy = targetPosRef.current.y - posRef.current.y;
+      const dist = Math.hypot(dx, dy);
+
+      // Distance threshold: if target is more than 50px away, WALK!
+      if (dist > 30) {
+        if (!isWalkingRef.current) {
+          isWalkingRef.current = true;
+          setIsWalking(true);
+        }
+
+        // Dynamic, responsive companion walking speed (smooth acceleration when far)
+        const speed = Math.max(95, Math.min(240, dist * 1.4));
         const step = speed * dt;
 
         if (dist <= step || dist < 4) {
-          // Arrived at destination!
+          // Arrived near the viewer
           posRef.current.x = targetPosRef.current.x;
           posRef.current.y = targetPosRef.current.y;
           setPos({ ...posRef.current });
-          aiStateRef.current = "IDLE";
+          isWalkingRef.current = false;
           setIsWalking(false);
 
-          // Resume cursor tracking from current stop position
-          const gazeDx = cursorRef.current.x - (posRef.current.x + 65);
-          const gazeDy = cursorRef.current.y - (posRef.current.y + 80);
+          // Face the cursor immediately upon stopping
+          const gazeDx = cursorRef.current.x - charCenterX;
+          const gazeDy = cursorRef.current.y - (posRef.current.y + 70);
           setViewState(calculateCursorGazeDirection(gazeDx, gazeDy));
-
-          scheduleNextRoam();
         } else {
-          // Move towards destination
+          // Move towards target
           posRef.current.x += (dx / dist) * step;
           posRef.current.y += (dy / dist) * step;
           setPos({ x: posRef.current.x, y: posRef.current.y });
 
-          // Keep facing walk direction
+          // Turn to face walking direction
           setViewState(calculateWalkDirection(dx, dy));
         }
-      } else if (aiStateRef.current === "IDLE") {
-        // Look towards cursor position
-        const charHeadX = posRef.current.x + 65;
-        const charHeadY = posRef.current.y + 80;
-        const gazeDx = cursorRef.current.x - charHeadX;
-        const gazeDy = cursorRef.current.y - charHeadY;
+      } else {
+        // Character is stopped near viewer -> gaze tracks cursor!
+        if (isWalkingRef.current) {
+          isWalkingRef.current = false;
+          setIsWalking(false);
+        }
 
+        const gazeDx = cursorRef.current.x - charCenterX;
+        const gazeDy = cursorRef.current.y - (posRef.current.y + 70);
         const newGaze = calculateCursorGazeDirection(gazeDx, gazeDy);
         setViewState((prev) => (prev !== newGaze ? newGaze : prev));
       }
@@ -199,11 +165,16 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
 
     animFrameRef.current = requestAnimationFrame(loop);
 
-    // Mouse movement listener (updates cursor position & hover interactions)
+    // Mouse movement listener: moves character along with the viewer across the ENTIRE screen!
     const onMouseMove = (e) => {
       cursorRef.current = { x: e.clientX, y: e.clientY };
+      lastMouseMoveTime.current = performance.now();
 
-      // Check for contextual hover cues
+      // Compute new companion waypoint near the viewer's cursor
+      const newFollowTarget = computeFollowTarget(e.clientX, e.clientY);
+      targetPosRef.current = newFollowTarget;
+
+      // Check contextual hover reactions
       const target = e.target.closest("[data-cursor], button, a");
       if (target) {
         const cursorType = target.getAttribute("data-cursor");
@@ -215,14 +186,32 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
       }
     };
 
+    // If mouse doesn't move for 4.5s, take a subtle micro-stroll nearby
+    const checkIdleStroll = () => {
+      const now = performance.now();
+      if (now - lastMouseMoveTime.current > 4500 && !isWalkingRef.current) {
+        // Small gentle 40px drift nearby
+        const jitterX = (Math.random() - 0.5) * 80;
+        const jitterY = (Math.random() - 0.5) * 60;
+        const winW = window.innerWidth;
+        const winH = window.innerHeight;
+
+        targetPosRef.current = {
+          x: Math.max(40, Math.min(winW - 160, posRef.current.x + jitterX)),
+          y: Math.max(70, Math.min(winH - 220, posRef.current.y + jitterY))
+        };
+      }
+    };
+
+    idleStrollTimer.current = setInterval(checkIdleStroll, 4000);
     window.addEventListener("mousemove", onMouseMove, { passive: true });
 
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-      if (waitTimerRef.current) clearTimeout(waitTimerRef.current);
+      if (idleStrollTimer.current) clearInterval(idleStrollTimer.current);
     };
-  }, [pickDestination]);
+  }, []);
 
   return (
     <div className="chibi-roam-layer" aria-label="Roaming Companion Layer">
@@ -234,7 +223,7 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
         }}
       >
         {/* Contextual Speech Bubble */}
-        <CharacterDialogue message={dialogue} duration={3600} />
+        <CharacterDialogue message={dialogue} duration={3400} />
 
         {/* 8-Directional Character Sprite with Walk Bob & Shadow */}
         <CharacterSprite viewState={viewState} isWalking={isWalking} />
