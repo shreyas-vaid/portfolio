@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import CharacterSprite from "./CharacterSprite";
 import CharacterDialogue from "./CharacterDialogue";
-import CharacterHUD from "./CharacterHUD";
 import {
   calculateWalkDirection,
   calculateCursorGazeDirection,
@@ -239,9 +238,6 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
 
         {/* 8-Directional Character Sprite with Walk Bob & Shadow */}
         <CharacterSprite viewState={viewState} isWalking={isWalking} />
-
-        {/* Tactical Status HUD */}
-        <CharacterHUD viewState={viewState} isWalking={isWalking} />
       </div>
     </div>
   );
