@@ -1,7 +1,17 @@
 export const missionHistory = [
   {
-    id: "mission-001",
+    id: "mission-intern-01",
     missionCode: "MISSION 001",
+    role: "Data Analyst Intern",
+    organization: "ThinkNEXT Technologies",
+    period: "MAY 2026 — JUNE 2026 (45 DAYS)",
+    status: "COMPLETED",
+    skillsAcquired: ["Data Analysis", "Python", "SQL", "Pandas", "Exploratory Data Analysis", "Statistical Modeling", "Data Cleansing"],
+    description: "Completed an intensive 45-day Data Analyst internship at ThinkNEXT Technologies. Executed exploratory data analysis on multi-variate datasets, designed analytical pipelines, and extracted actionable operational insights and visualization reports using Python and SQL."
+  },
+  {
+    id: "mission-001",
+    missionCode: "MISSION 002",
     role: "Full-Stack & Web Systems Engineering",
     organization: "Independent Development & Production Projects",
     period: "2024 — PRESENT",
@@ -11,7 +21,7 @@ export const missionHistory = [
   },
   {
     id: "mission-002",
-    missionCode: "MISSION 002",
+    missionCode: "MISSION 003",
     role: "Data Science & Analytical Pipeline Operations",
     organization: "Specialized Technical Studies & Projects",
     period: "2024 — 2025",
@@ -21,7 +31,7 @@ export const missionHistory = [
   },
   {
     id: "mission-003",
-    missionCode: "MISSION 003",
+    missionCode: "MISSION 004",
     role: "Core Computer Science & Systems Foundation",
     organization: "Academic Engineering Curriculum",
     period: "2023 — PRESENT",

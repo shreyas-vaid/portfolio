@@ -56,6 +56,7 @@ export const personalProfile = {
 
   // Fun trivia & quirk facts
   funFacts: [
+    "Completed an intensive 45-day Data Analyst internship at ThinkNEXT Technologies (May–June 2026).",
     "Has an overflow Creativity stat (110/100) on his character sheet!",
     "Believes code should be as visually striking as it is technically performant.",
     "Designed this entire portfolio with a custom Cyberpunk × JRPG developer terminal theme."

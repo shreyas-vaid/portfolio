@@ -163,13 +163,21 @@ export function processQuery(userQuery) {
     };
   }
 
-  // 12. EXPERIENCE & TIMELINE
-  if (/experience|work|job|timeline|background|career/i.test(query)) {
+  // 12. EXPERIENCE, INTERNSHIPS & TIMELINE
+  if (/intern|internship|thinknext|experience|work|job|timeline|background|career/i.test(query)) {
     lastIntent = "EXPERIENCE";
-    const expList = missionHistory.map(e => `• **${e.role}** at *${e.organization}* (${e.period}): ${e.description}`).join("\n");
+    if (/intern|thinknext/i.test(query)) {
+      return {
+        sender: "bot",
+        text: `💼 **DATA ANALYST INTERNSHIP // THINKNEXT**\n• **Role**: Data Analyst Intern\n• **Organization**: ThinkNEXT Technologies\n• **Duration**: 45 Days (May 2026 — June 2026)\n• **Core Impact**: Conducted exploratory data analysis (EDA), built analytical data pipelines, processed multi-variate datasets, and derived actionable business reports using Python and SQL.`,
+        pose: "FOCUSED",
+        timestamp: time
+      };
+    }
+    const expList = missionHistory.map(e => `• **${e.role}** at *${e.organization}* (${e.period}): ${e.description}`).join("\n\n");
     return {
       sender: "bot",
-      text: `⏱️ **OPERATIONAL LOGS**\n${expList}`,
+      text: `⏱️ **OPERATIONAL LOGS & EXPERIENCE**\n${expList}`,
       pose: "FOCUSED",
       timestamp: time
     };

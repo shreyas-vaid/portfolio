@@ -4,6 +4,7 @@ export default function SuggestedQuestions({ onSelectQuestion, disabled = false 
     { label: "🍜 FOOD", query: "What food does Shreyas enjoy?" },
     { label: "🎮 HOBBIES", query: "What does Shreyas do outside coding?" },
     { label: "🧠 PERSONALITY", query: "What is Shreyas's personality like?" },
+    { label: "💼 INTERNSHIP", query: "Tell me about Shreyas's Data Analyst internship at ThinkNEXT" },
     { label: "💻 TECH", query: "What technologies does Shreyas specialize in?" },
     { label: "📜 CERTS", query: "What certifications does he hold?" },
     { label: "🚀 GOALS", query: "What are his career and development goals?" }
