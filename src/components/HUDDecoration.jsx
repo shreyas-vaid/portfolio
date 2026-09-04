@@ -1,10 +1,40 @@
 import { useState, useEffect } from "react";
 import { Volume2, VolumeX } from "lucide-react";
-import { setSoundEnabled, getSoundEnabled, playSelectSound } from "../utils/sound";
+import { setSoundEnabled, getSoundEnabled, playSelectSound, playHoverSound } from "../utils/sound";
+import { gameState } from "../utils/gameState";
 
-export default function HUDDecoration() {
+const hudBtnStyle = {
+  background: "rgba(22, 22, 28, 0.85)",
+  border: "1px solid var(--border-mid)",
+  color: "#e4e4e7",
+  fontFamily: "var(--font-mono)",
+  fontSize: "0.62rem",
+  fontWeight: 600,
+  padding: "2px 8px",
+  cursor: "pointer",
+  borderRadius: "2px",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "4px",
+  transition: "all var(--transition-fast)"
+};
+
+export default function HUDDecoration({
+  onOpenInventory,
+  onOpenRadio,
+  onOpenTerminal,
+  onOpenAchievements
+}) {
   const [soundOn, setSoundOn] = useState(() => getSoundEnabled());
   const [time, setTime] = useState("");
+  const [st, setSt] = useState(gameState.state);
+
+  useEffect(() => {
+    const unsub = gameState.subscribe((newState) => {
+      setSt(newState);
+    });
+    return unsub;
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -23,13 +53,19 @@ export default function HUDDecoration() {
     playSelectSound();
   };
 
+  const handleToggleTheme = () => {
+    if (st.isVioletUnlocked) {
+      gameState.setTheme(st.activeTheme === "violet" ? "red" : "violet");
+    }
+  };
+
   return (
     <>
       {/* Fixed Cyber Scanlines & Grid */}
       <div className="cyber-scanlines" />
       <div className="cyber-grid-bg" />
 
-      {/* Top HUD Telemetry Bar (Desktop only, hidden on mobile for clean viewport) */}
+      {/* Top HUD Telemetry & Quick-Tools Bar (Desktop only, 0 overlap with Navbar below) */}
       <header
         className="hud-top-telemetry hide-mobile"
         style={{
@@ -38,8 +74,8 @@ export default function HUDDecoration() {
           left: 0,
           right: 0,
           height: "36px",
-          background: "rgba(8, 8, 8, 0.85)",
-          backdropFilter: "blur(8px)",
+          background: "rgba(8, 8, 8, 0.9)",
+          backdropFilter: "blur(10px)",
           borderBottom: "1px solid var(--border-subtle)",
           zIndex: 80,
           display: "flex",
@@ -51,6 +87,7 @@ export default function HUDDecoration() {
           color: "var(--text-dim)"
         }}
       >
+        {/* Left: System Status Telemetry */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <span
@@ -64,12 +101,87 @@ export default function HUDDecoration() {
             />
             <strong style={{ color: "var(--text-primary)" }}>ONLINE</strong>
           </span>
-          <span className="hide-mobile">NODE: IN-DEL-01</span>
-          <span className="hide-mobile">SYS_BUILD: 2026.09</span>
+          <span>NODE: IN-DEL-01</span>
+          <span>SYS_BUILD: 2026.09</span>
         </div>
 
+        {/* Center: Tactical Quick-Tools (Cleanly placed in the top bar with 0 overlap!) */}
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ fontSize: "0.62rem", color: "var(--accent-red-bright)", fontWeight: 700, letterSpacing: "0.08em", marginRight: "2px" }}>
+            TOOLS //
+          </span>
+          <button
+            type="button"
+            onClick={onOpenInventory}
+            onMouseEnter={playHoverSound}
+            data-cursor="INVENTORY"
+            style={hudBtnStyle}
+            title="Open Tactical Inventory"
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = "var(--accent-red)"; e.currentTarget.style.color = "#fff"; }}
+            onMouseOut={(e) => { e.currentTarget.style.borderColor = "var(--border-mid)"; e.currentTarget.style.color = "#e4e4e7"; }}
+          >
+            🎒 INVENTORY
+          </button>
+          <button
+            type="button"
+            onClick={onOpenRadio}
+            onMouseEnter={playHoverSound}
+            data-cursor="RADIO"
+            style={hudBtnStyle}
+            title="Open SV Radio"
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = "var(--accent-red)"; e.currentTarget.style.color = "#fff"; }}
+            onMouseOut={(e) => { e.currentTarget.style.borderColor = "var(--border-mid)"; e.currentTarget.style.color = "#e4e4e7"; }}
+          >
+            📻 RADIO
+          </button>
+          <button
+            type="button"
+            onClick={onOpenTerminal}
+            onMouseEnter={playHoverSound}
+            data-cursor="TERMINAL"
+            style={hudBtnStyle}
+            title="Open Developer Terminal"
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = "var(--accent-red)"; e.currentTarget.style.color = "#fff"; }}
+            onMouseOut={(e) => { e.currentTarget.style.borderColor = "var(--border-mid)"; e.currentTarget.style.color = "#e4e4e7"; }}
+          >
+            ⌨️ TERMINAL
+          </button>
+          <button
+            type="button"
+            onClick={onOpenAchievements}
+            onMouseEnter={playHoverSound}
+            data-cursor="AWARDS"
+            style={hudBtnStyle}
+            title="Open Tactical Milestones & Awards"
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = "var(--accent-red)"; e.currentTarget.style.color = "#fff"; }}
+            onMouseOut={(e) => { e.currentTarget.style.borderColor = "var(--border-mid)"; e.currentTarget.style.color = "#e4e4e7"; }}
+          >
+            🏆 MILESTONES
+          </button>
+
+          {st.isVioletUnlocked && (
+            <button
+              type="button"
+              onClick={handleToggleTheme}
+              onMouseEnter={playHoverSound}
+              data-cursor="THEME"
+              style={{
+                ...hudBtnStyle,
+                borderColor: "#a855f7",
+                color: "#d8b4fe"
+              }}
+              title="Switch Visual Protocol"
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = "#c084fc"; e.currentTarget.style.color = "#fff"; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = "#a855f7"; e.currentTarget.style.color = "#d8b4fe"; }}
+            >
+              {st.activeTheme === "violet" ? "💜 VIOLET" : "🔴 RED"}
+            </button>
+          )}
+        </div>
+
+        {/* Right: Realtime Clock & Sound Toggle */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <span className="hide-mobile">{time} UTC</span>
+          <span>{time} UTC</span>
 
           {/* Sound Toggle */}
           <button

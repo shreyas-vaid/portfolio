@@ -11,7 +11,6 @@ import InteractiveCharacter from "./components/InteractiveCharacter/InteractiveC
 import Footer from "./components/Footer";
 
 // Game Layer Components
-import GameHUD from "./components/GameHUD/GameHUD";
 import InventoryModal from "./components/Inventory/InventoryModal";
 import RadioModal from "./components/Radio/RadioModal";
 import TerminalModal from "./components/Terminal/TerminalModal";
@@ -83,11 +82,8 @@ function App() {
         onClose={() => setIsThemeBannerOpen(false)}
       />
 
-      {/* HUD Telemetry & Audio Controller */}
-      <HUDDecoration />
-
-      {/* Desktop Tactical Quick-Tools Strip */}
-      <GameHUD
+      {/* HUD Telemetry & Desktop Tactical Quick-Tools Bar */}
+      <HUDDecoration
         onOpenInventory={() => setIsInventoryOpen(true)}
         onOpenRadio={() => setIsRadioOpen(true)}
         onOpenTerminal={() => setIsTerminalOpen(true)}
