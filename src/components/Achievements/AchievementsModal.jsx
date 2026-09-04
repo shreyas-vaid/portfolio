@@ -30,7 +30,7 @@ export default function AchievementsModal({ isOpen, onClose }) {
         {/* Header */}
         <div className="ach-modal-header">
           <div className="ach-title-wrap">
-            <span className="ach-badge">ARCHIVE // XP</span>
+            <span className="ach-badge">ARCHIVE // MILESTONES</span>
             <h3 className="ach-title">TACTICAL ACHIEVEMENTS & MILESTONES</h3>
           </div>
           <button type="button" className="ach-close-btn" onClick={onClose}>
@@ -72,7 +72,7 @@ export default function AchievementsModal({ isOpen, onClose }) {
                   <div className="ach-card-content">
                     <div className="ach-card-top-row">
                       <span className="ach-type-badge">{ach.type}</span>
-                      <span className="ach-xp-badge">{ach.xp}</span>
+                      <span className="ach-xp-badge">{ach.badge || "VERIFIED"}</span>
                     </div>
                     <h4 className="ach-card-title">{ach.name}</h4>
                     <p className="ach-card-desc">{ach.description}</p>

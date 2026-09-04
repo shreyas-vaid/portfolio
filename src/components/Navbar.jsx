@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
-import { playHoverSound, playSelectSound } from "../utils/sound";
+import { useState, useEffect } from "react";
+import { Menu, X, Volume2, VolumeX } from "lucide-react";
+import { playHoverSound, playSelectSound, getSoundEnabled, setSoundEnabled } from "../utils/sound";
+import { gameState } from "../utils/gameState";
+import "./Navbar.css";
 
 const NAV_ITEMS = [
   { id: "hero", number: "01", label: "PROFILE" },
@@ -12,8 +14,35 @@ const NAV_ITEMS = [
   { id: "contact", number: "07", label: "CONTACT" }
 ];
 
-export default function Navbar({ activeSection }) {
+export default function Navbar({
+  activeSection,
+  onOpenInventory,
+  onOpenRadio,
+  onOpenTerminal,
+  onOpenAchievements
+}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [soundOn, setSoundOn] = useState(() => getSoundEnabled());
+  const [theme, setTheme] = useState(gameState.state.activeTheme || "red");
+
+  useEffect(() => {
+    const unsub = gameState.subscribe((st) => {
+      setTheme(st.activeTheme);
+    });
+    return unsub;
+  }, []);
+
+  const toggleSound = () => {
+    const next = !soundOn;
+    setSoundOn(next);
+    setSoundEnabled(next);
+    playSelectSound();
+  };
+
+  const handleToggleTheme = () => {
+    const next = theme === "violet" ? "red" : "violet";
+    gameState.setTheme(next);
+  };
 
   const scrollToSection = (id) => {
     playSelectSound();
@@ -24,87 +53,30 @@ export default function Navbar({ activeSection }) {
     setMobileMenuOpen(false);
   };
 
+  const handleToolClick = (toolFn) => {
+    setMobileMenuOpen(false);
+    if (toolFn) toolFn();
+  };
+
   return (
     <>
-      <nav
-        style={{
-          position: "fixed",
-          top: "36px", // right below HUD bar
-          left: 0,
-          right: 0,
-          height: "64px",
-          background: "rgba(13, 13, 13, 0.92)",
-          backdropFilter: "blur(12px)",
-          borderBottom: "1px solid var(--border-subtle)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 clamp(1rem, 3vw, 2rem)",
-          zIndex: 75
-        }}
-      >
+      <nav className="cyber-nav-container" aria-label="Main Navigation">
         {/* Brand / Logo */}
         <button
           onClick={() => scrollToSection("hero")}
           onMouseEnter={playHoverSound}
           data-cursor="HOME"
-          style={{
-            background: "none",
-            border: "none",
-            color: "#ffffff",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            cursor: "pointer",
-            textAlign: "left"
-          }}
+          className="cyber-brand-btn"
         >
-          <div
-            style={{
-              width: "28px",
-              height: "28px",
-              background: "var(--accent-red)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 800,
-              fontSize: "0.85rem",
-              fontFamily: "var(--font-display)",
-              color: "#fff",
-              clipPath: "polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%)"
-            }}
-          >
-            SV
-          </div>
+          <div className="cyber-brand-badge">SV</div>
           <div>
-            <div
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 700,
-                fontSize: "1.05rem",
-                letterSpacing: "0.08em",
-                color: "#ffffff",
-                lineHeight: 1
-              }}
-            >
-              SHREYAS VAID
-            </div>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.62rem",
-                color: "var(--accent-red-bright)",
-                letterSpacing: "0.15em",
-                marginTop: "2px"
-              }}
-            >
-              LVL 21 // DEV_PROFILE
-            </div>
+            <div className="cyber-brand-name">SHREYAS VAID</div>
+            <div className="cyber-brand-sub">LVL 21 // DEV_PROFILE</div>
           </div>
         </button>
 
-        {/* Desktop JRPG Nav Items */}
-        <div className="hide-mobile" style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+        {/* Desktop Navigation Links */}
+        <div className="desktop-nav-links">
           {NAV_ITEMS.map((item) => {
             const isActive = activeSection === item.id;
             return (
@@ -113,158 +85,116 @@ export default function Navbar({ activeSection }) {
                 onClick={() => scrollToSection(item.id)}
                 onMouseEnter={playHoverSound}
                 data-cursor="GO"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  display: "flex",
-                  alignItems: "baseline",
-                  gap: "6px",
-                  cursor: "pointer",
-                  padding: "6px 4px",
-                  position: "relative",
-                  transition: "all var(--transition-fast)"
-                }}
+                className={`nav-link-btn ${isActive ? "active" : ""}`}
               >
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.65rem",
-                    color: isActive ? "var(--accent-red)" : "var(--text-dim)",
-                    fontWeight: 700
-                  }}
-                >
-                  {item.number}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "0.82rem",
-                    letterSpacing: "0.1em",
-                    color: isActive ? "#ffffff" : "var(--text-muted)",
-                    fontWeight: isActive ? 700 : 500,
-                    transition: "color var(--transition-fast)"
-                  }}
-                >
-                  {item.label}
-                </span>
-
-                {/* Active Underline Indicator */}
-                {isActive && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      bottom: "-2px",
-                      left: 0,
-                      right: 0,
-                      height: "2px",
-                      background: "var(--accent-red)",
-                      boxShadow: "0 0 8px var(--accent-red)"
-                    }}
-                  />
-                )}
+                <span className="nav-link-num">{item.number}</span>
+                <span className="nav-link-label">{item.label}</span>
+                {isActive && <span className="nav-active-bar" />}
               </button>
             );
           })}
         </div>
 
-        {/* Mobile Hamburger Toggle */}
-        <button
-          onClick={() => {
-            playSelectSound();
-            setMobileMenuOpen(!mobileMenuOpen);
-          }}
-          className="show-mobile-only"
-          data-cursor="MENU"
-          aria-label="Toggle navigation menu"
-          style={{
-            background: "var(--bg-panel)",
-            border: "1px solid var(--border-mid)",
-            color: "var(--text-primary)",
-            width: "42px",
-            height: "42px",
-            display: "none",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer"
-          }}
-        >
-          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        {/* Mobile Header Controls (Sound toggle + Hamburger) */}
+        <div className="mobile-header-controls">
+          <button
+            type="button"
+            onClick={toggleSound}
+            className={`mobile-icon-btn ${soundOn ? "active" : ""}`}
+            aria-label={soundOn ? "Mute audio sound effects" : "Enable tactical audio sound effects"}
+            title={soundOn ? "Audio: ON" : "Audio: OFF"}
+          >
+            {soundOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              playSelectSound();
+              setMobileMenuOpen(!mobileMenuOpen);
+            }}
+            className="mobile-icon-btn"
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </nav>
 
       {/* Full-Screen Mobile Drawer */}
       {mobileMenuOpen && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            top: "96px",
-            background: "rgba(8, 8, 8, 0.98)",
-            backdropFilter: "blur(20px)",
-            zIndex: 74,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            padding: "clamp(1.25rem, 5vw, 2.5rem)",
-            overflowY: "auto"
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+        <div className="cyber-mobile-drawer">
+          {/* Section Navigation List */}
+          <div className="drawer-nav-list">
             {NAV_ITEMS.map((item) => (
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  borderBottom: "1px solid #1a1a1a",
-                  padding: "12px 0",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "16px",
-                  textAlign: "left",
-                  cursor: "pointer"
-                }}
+                className="drawer-nav-item"
               >
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.85rem",
-                    color: "var(--accent-red)",
-                    fontWeight: 700
-                  }}
-                >
-                  {item.number}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "1.5rem",
-                    color: "#ffffff",
-                    letterSpacing: "0.08em",
-                    fontWeight: 700
-                  }}
-                >
-                  {item.label}
-                </span>
+                <span className="drawer-item-num">{item.number}</span>
+                <span className="drawer-item-label">{item.label}</span>
               </button>
             ))}
           </div>
 
-          <div
-            style={{
-              marginTop: "2rem",
-              paddingTop: "1.5rem",
-              borderTop: "1px solid #222",
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.75rem",
-              color: "var(--text-dim)"
-            }}
-          >
-            STATUS: ONLINE // TAP SECTION TO ACCESS
+          {/* Tactical Protocols & Tools Panel (Clean mobile home for all interactive features) */}
+          <div className="drawer-tactical-card">
+            <div className="drawer-card-title">
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent-red-bright)" }} />
+              TACTICAL PROTOCOLS // TOOLS
+            </div>
+            <div className="drawer-tools-grid">
+              <button
+                type="button"
+                className="drawer-tool-btn"
+                onClick={() => handleToolClick(onOpenInventory)}
+              >
+                🎒 INVENTORY
+              </button>
+              <button
+                type="button"
+                className="drawer-tool-btn"
+                onClick={() => handleToolClick(onOpenRadio)}
+              >
+                📻 RADIO
+              </button>
+              <button
+                type="button"
+                className="drawer-tool-btn"
+                onClick={() => handleToolClick(onOpenTerminal)}
+              >
+                ⌨️ TERMINAL
+              </button>
+              <button
+                type="button"
+                className="drawer-tool-btn"
+                onClick={() => handleToolClick(onOpenAchievements)}
+              >
+                🏆 MILESTONES
+              </button>
+
+              {gameState.state.isVioletUnlocked && (
+                <button
+                  type="button"
+                  className="drawer-tool-btn theme-btn"
+                  onClick={handleToggleTheme}
+                  style={{ gridColumn: "span 2" }}
+                >
+                  {theme === "violet" ? "💜 VIOLET THEME (ACTIVE)" : "🔴 SWITCH TO VIOLET"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Drawer Footer Status */}
+          <div className="drawer-footer-status">
+            <span>● STATUS: ONLINE</span>
+            <span>NODE: IN-DEL-01</span>
           </div>
         </div>
       )}
     </>
   );
 }
+

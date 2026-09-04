@@ -17,7 +17,6 @@ import RadioModal from "./components/Radio/RadioModal";
 import TerminalModal from "./components/Terminal/TerminalModal";
 import AchievementsModal from "./components/Achievements/AchievementsModal";
 import SecretThemeBanner from "./components/ThemeOverride/SecretThemeBanner";
-import XPToast from "./components/Notifications/XPToast";
 
 // Game State Engine
 import { gameState } from "./utils/gameState";
@@ -32,15 +31,6 @@ import Achievements from "./sections/Achievements";
 import Contact from "./sections/Contact";
 
 const SECTIONS = ["hero", "identity", "abilities", "quests", "experience", "achievements", "contact"];
-const SECTION_XP_MAP = {
-  hero: 10,
-  identity: 10,
-  abilities: 10,
-  quests: 15,
-  experience: 15,
-  achievements: 15,
-  contact: 10
-};
 
 function App() {
   const [bootComplete, setBootComplete] = useState(false);
@@ -58,27 +48,14 @@ function App() {
     gameState.setTheme(gameState.state.activeTheme || "red");
   }, []);
 
-  // Track active section and award exploration XP
+  // Track active section for navbar highlighting
   useEffect(() => {
     const handleScroll = () => {
       const scrollPos = window.scrollY + 200;
       for (let i = SECTIONS.length - 1; i >= 0; i--) {
         const el = document.getElementById(SECTIONS[i]);
         if (el && el.offsetTop <= scrollPos) {
-          const currentSec = SECTIONS[i];
-          setActiveSection(currentSec);
-
-          // Award exploration XP once per section
-          if (bootComplete) {
-            const xp = SECTION_XP_MAP[currentSec] || 10;
-            gameState.awardXP(`visit_${currentSec}`, xp, `${currentSec.toUpperCase()} EXPLORED`);
-
-            // Check if all sections have been visited
-            const allVisited = SECTIONS.every((s) => gameState.state.completedActions[`visit_${s}`]);
-            if (allVisited) {
-              gameState.unlockAchievement("ach-exp-explorer", "SYSTEM EXPLORER");
-            }
-          }
+          setActiveSection(SECTIONS[i]);
           break;
         }
       }
@@ -86,7 +63,7 @@ function App() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [bootComplete]);
+  }, []);
 
   return (
     <div className="app-root">
@@ -100,9 +77,6 @@ function App() {
       {/* Desktop Custom Reticle Cursor */}
       <CustomCursor />
 
-      {/* XP & Level Notification Toasts */}
-      <XPToast />
-
       {/* Cinematic Secret Theme Unlock Overlay */}
       <SecretThemeBanner
         isOpen={isThemeBannerOpen}
@@ -112,7 +86,7 @@ function App() {
       {/* HUD Telemetry & Audio Controller */}
       <HUDDecoration />
 
-      {/* Exploration Game System HUD (Rank, XP Bar, Quick Launch Tools) */}
+      {/* Desktop Tactical Quick-Tools Strip */}
       <GameHUD
         onOpenInventory={() => setIsInventoryOpen(true)}
         onOpenRadio={() => setIsRadioOpen(true)}
@@ -120,8 +94,14 @@ function App() {
         onOpenAchievements={() => setIsAchievementsOpen(true)}
       />
 
-      {/* JRPG Sticky Navigation Menu */}
-      <Navbar activeSection={activeSection} />
+      {/* JRPG Sticky Navigation Menu & Mobile Drawer */}
+      <Navbar
+        activeSection={activeSection}
+        onOpenInventory={() => setIsInventoryOpen(true)}
+        onOpenRadio={() => setIsRadioOpen(true)}
+        onOpenTerminal={() => setIsTerminalOpen(true)}
+        onOpenAchievements={() => setIsAchievementsOpen(true)}
+      />
 
       {/* Interactive Chibi Character Companion (SV-01) */}
       <InteractiveCharacter activeSection={activeSection} />

@@ -15,7 +15,6 @@ const BOOT_LINES = [
 
 export default function BootScreen({ onComplete }) {
   const isReturning = gameState.state.visitCount > 1;
-  const currentTier = gameState.getCurrentLevel();
   const [currentStep, setCurrentStep] = useState(isReturning ? BOOT_LINES.length : 0);
   const isDone = isReturning || currentStep >= BOOT_LINES.length;
 
@@ -30,7 +29,6 @@ export default function BootScreen({ onComplete }) {
 
   const handleEnter = useCallback(() => {
     playConfirmSound();
-    gameState.awardXP("first_contact_init", 15, "SYSTEM INITIALIZED");
     gameState.unlockAchievement("ach-exp-init", "FIRST CONTACT");
     onComplete();
   }, [onComplete]);
@@ -144,13 +142,13 @@ export default function BootScreen({ onComplete }) {
                 ▶ SAVE FILE FOUND // SESSION PRESERVED
               </div>
               <div style={{ color: "#ffffff", fontSize: "1.2rem", fontWeight: 700, fontFamily: "var(--font-display)" }}>
-                WELCOME BACK, EXPLORER.
+                WELCOME BACK.
               </div>
               <div style={{ color: "var(--text-muted)", fontSize: "0.82rem" }}>
-                RANK: <strong style={{ color: "#ffffff" }}>LVL 0{currentTier.level} // {currentTier.title}</strong> ({gameState.state.xp} XP)
+                TERMINAL VERIFIED // <strong style={{ color: "#ffffff" }}>SHREYAS VAID PORTFOLIO</strong>
               </div>
               <div style={{ color: "var(--text-dim)", fontSize: "0.75rem" }}>
-                {Object.keys(gameState.state.completedActions).length} DISCOVERIES REGISTERED // {gameState.state.unlockedAchievements.length} ACHIEVEMENTS
+                SYSTEM ONLINE // PROTOCOL ACTIVE
               </div>
             </div>
           ) : (

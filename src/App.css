@@ -31,13 +31,13 @@ body {
   section {
     padding-left: clamp(1rem, 4vw, 1.5rem) !important;
     padding-right: clamp(1rem, 4vw, 1.5rem) !important;
-    padding-top: 4.5rem !important;
-    padding-bottom: 3.5rem !important;
+    padding-top: 3.5rem !important;
+    padding-bottom: 2.5rem !important;
   }
 
   #hero {
-    padding-top: 7rem !important;
-    padding-bottom: 3.5rem !important;
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
     min-height: auto !important;
   }
 
@@ -115,10 +115,16 @@ body {
 .main-content-layout {
   position: relative;
   z-index: 10;
-  padding-top: 36px; /* offset for HUD top telemetry bar */
+  padding-top: 100px; /* offset for HUD top telemetry (36px) + Navbar (64px) */
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .main-content-layout {
+    padding-top: 56px !important; /* offset for unified 56px mobile navbar */
+  }
 }
 
 /* Form inputs & interactive styles */

@@ -19,7 +19,6 @@ export default function RadioModal({ isOpen, onClose }) {
 
   useEffect(() => {
     if (isOpen) {
-      gameState.awardXP("open_radio_modal", 10, "SV RADIO TUNED");
       gameState.unlockAchievement("ach-exp-radio", "SUBWAVE AUDIOPHILE");
     }
   }, [isOpen]);

@@ -16,7 +16,7 @@ const COMMANDS_HELP = [
   { cmd: "education", desc: "Display academic systems credentials" },
   { cmd: "inventory", desc: "Inspect collected inventory items" },
   { cmd: "achievements", desc: "List verified & exploration achievements" },
-  { cmd: "status", desc: "Check system diagnostics, XP, and rank" },
+  { cmd: "status", desc: "Check system diagnostics and active protocol" },
   { cmd: "theme [red|violet]", desc: "Switch system visual protocol" },
   { cmd: "clear", desc: "Clear terminal buffer" },
   { cmd: "sudo coffee", desc: "Request administrator caffeine rations" }
@@ -37,7 +37,6 @@ export default function TerminalModal({ isOpen, onClose, onTriggerThemeUnlock })
 
   useEffect(() => {
     if (isOpen) {
-      gameState.awardXP("open_terminal_modal", 20, "TERMINAL ACCESSED");
       gameState.unlockAchievement("ach-exp-terminal", "TERMINAL OPERATOR");
       setTimeout(() => inputRef.current?.focus(), 150);
     }
@@ -137,17 +136,15 @@ export default function TerminalModal({ isOpen, onClose, onTriggerThemeUnlock })
         break;
 
       case "status": {
-        const lvl = gameState.getCurrentLevel();
         outputRows.push({
           type: "system",
-          text: `SYSTEM DIAGNOSTICS:\n• RANK: LVL 0${lvl.level} // ${lvl.title}\n• EXPLORATION XP: ${gameState.state.xp} / ${lvl.maxXP}\n• ACTIVE PROTOCOL: SYSTEM // ${gameState.state.activeTheme.toUpperCase()}\n• COMPLETED ACTIONS: ${Object.keys(gameState.state.completedActions).length}\n• RETURN VISITS: ${gameState.state.visitCount}`
+          text: `SYSTEM DIAGNOSTICS:\n• HOST: SHREYAS-VAID-PORTFOLIO\n• ACTIVE PROTOCOL: SYSTEM // ${gameState.state.activeTheme.toUpperCase()}\n• INVENTORY MODULES: ${gameState.state.unlockedItems.length} LOADED\n• RETURN VISITS: ${gameState.state.visitCount}`
         });
         break;
       }
 
       case "sudo":
         if (arg === "coffee") {
-          gameState.awardXP("sudo_coffee_easter_egg", 35, "COFFEE RATIONS ATTEMPTED");
           gameState.unlockItem("item-coffee-thermos", "SUDO COFFEE THERMOS");
           gameState.unlockAchievement("ach-exp-coffee", "CAFFEINE REQUISITION");
           outputRows.push({

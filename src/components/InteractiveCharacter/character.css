@@ -168,35 +168,28 @@
   }
 }
 
-/* Mobile & Touch Overrides */
+/* Mobile & Touch Overrides — Unobtrusive & Slick */
 @media (max-width: 768px) {
   .chibi-companion-root {
-    bottom: 12px;
-    right: 12px;
+    bottom: max(14px, env(safe-area-inset-bottom, 14px));
+    right: max(14px, env(safe-area-inset-right, 14px));
+    z-index: 65;
   }
 
   .chibi-sprite-wrap {
-    width: 48px;
-    height: 66px;
+    width: 42px;
+    height: 56px;
   }
 
   .chibi-callout-badge {
     font-size: 0.52rem;
     padding: 2px 6px;
+    background: rgba(10, 10, 14, 0.95);
   }
 
+  /* Completely suppress floating speech bubbles on mobile so reading is never obstructed */
   .chibi-speech-bubble {
-    font-size: 0.54rem;
-    max-width: 140px;
-    right: 0;
-    left: auto;
-    transform: none;
-  }
-
-  .chibi-speech-bubble::after {
-    left: auto;
-    right: 18px;
-    transform: none;
+    display: none !important;
   }
 }
 

@@ -136,15 +136,19 @@ export default function Hero() {
               <ChevronRight size={18} />
             </button>
 
-            <button
-              onClick={handleResumeClick}
+            <a
+              href="/resume.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => playSelectSound()}
               onMouseEnter={playHoverSound}
               data-cursor="RESUME"
               className="btn-cyber-secondary"
+              style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px" }}
             >
               <FileText size={16} />
               <span>[ VIEW RESUME ]</span>
-            </button>
+            </a>
           </div>
 
           {/* Subsystem Telemetry Badge */}

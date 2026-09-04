@@ -10,7 +10,9 @@ export default function CustomCursor() {
     return (
       "ontouchstart" in window ||
       navigator.maxTouchPoints > 0 ||
-      window.matchMedia("(pointer: coarse)").matches
+      window.matchMedia("(pointer: coarse)").matches ||
+      window.matchMedia("(max-width: 768px)").matches ||
+      window.innerWidth <= 768
     );
   });
 

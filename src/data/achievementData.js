@@ -14,7 +14,7 @@ export const achievementsList = [
     code: "AWARD-01",
     issuer: "ThinkNEXT Technologies",
     date: "JUNE 2026",
-    xp: "+500 XP",
+    badge: "TOP HONORS",
     icon: "🏆",
     unlocked: true,
     description: "Awarded Intern of the Month for outstanding analytical problem-solving, dashboard architecture, and data validation during the 45-day Data Analyst internship."
@@ -26,7 +26,7 @@ export const achievementsList = [
     code: "EXP-01",
     issuer: "ThinkNEXT Technologies",
     date: "MAY–JUNE 2026",
-    xp: "+450 XP",
+    badge: "ANALYTICS",
     icon: "💼",
     unlocked: true,
     description: "Successfully completed intensive 45-day Data Analyst internship executing exploratory data analysis (EDA), multi-variate dataset cleansing, and SQL reporting pipelines."
@@ -38,7 +38,7 @@ export const achievementsList = [
     code: "PRJ-01",
     issuer: "Sales Performance Intelligence",
     date: "2025–2026",
-    xp: "+400 XP",
+    badge: "FEATURED",
     icon: "📊",
     unlocked: true,
     description: "Architected end-to-end Python sales analysis dashboard incorporating data cleaning, exploratory visual analytics, customer segmentation, and regional growth metrics."
@@ -50,7 +50,7 @@ export const achievementsList = [
     code: "DEV-01",
     issuer: "Web & API Systems",
     date: "2024–PRESENT",
-    xp: "+350 XP",
+    badge: "FULL-STACK",
     icon: "⚡",
     unlocked: true,
     description: "Engineered web services and database controllers utilizing Flask, Streamlit, and relational SQL database modeling."
@@ -62,7 +62,7 @@ export const achievementsList = [
     code: "SKL-01",
     issuer: "Core Language Mastery",
     date: "2024–PRESENT",
-    xp: "+300 XP",
+    badge: "CORE STACK",
     icon: "🐍",
     unlocked: true,
     description: "Mastery of Python programming across Object-Oriented paradigms, data structures, automation routines, and statistical pipelines."
@@ -74,7 +74,7 @@ export const achievementsList = [
     code: "EDU-01",
     issuer: "Chandigarh University",
     date: "EXPECTED MAY 2028",
-    xp: "+250 XP",
+    badge: "B.E. CSE",
     icon: "🏛️",
     unlocked: true,
     description: "Pursuing Bachelor of Engineering in Computer Science Engineering (Current CGPA: 7.02). Core focus in Algorithms, DBMS, and OS."
@@ -88,7 +88,7 @@ export const achievementsList = [
     code: "EXP-01",
     issuer: "System Access",
     date: "VISITOR ACTION",
-    xp: "+15 XP",
+    badge: "INITIALIZED",
     icon: "🚀",
     unlocked: false,
     description: "Successfully initialized the developer operating system and entered the classified portfolio environment."
@@ -100,7 +100,7 @@ export const achievementsList = [
     code: "EXP-02",
     issuer: "Portfolio Sector Scan",
     date: "VISITOR ACTION",
-    xp: "+50 XP",
+    badge: "ALL SECTORS",
     icon: "🗺️",
     unlocked: false,
     description: "Navigated through all primary portfolio sectors: Hero, Identity, Abilities, Quests, Experience, Achievements, and Contact."
@@ -112,7 +112,7 @@ export const achievementsList = [
     code: "EXP-03",
     issuer: "SV-OS Command Line",
     date: "VISITOR ACTION",
-    xp: "+25 XP",
+    badge: "OPERATOR",
     icon: "⌨️",
     unlocked: false,
     description: "Discovered and executed a diagnostic query within the SV-OS Developer Terminal."
@@ -124,7 +124,7 @@ export const achievementsList = [
     code: "EXP-04",
     issuer: "SV Radio Broadcaster",
     date: "VISITOR ACTION",
-    xp: "+20 XP",
+    badge: "AUDIO SYNC",
     icon: "📻",
     unlocked: false,
     description: "Connected to SV Radio and synchronized audio frequencies."
@@ -136,7 +136,7 @@ export const achievementsList = [
     code: "EXP-05",
     issuer: "JRPG Equipment Cache",
     date: "VISITOR ACTION",
-    xp: "+25 XP",
+    badge: "COLLECTOR",
     icon: "🎒",
     unlocked: false,
     description: "Inspected the tactical inventory modules and reviewed verified credentials."
@@ -148,7 +148,7 @@ export const achievementsList = [
     code: "EXP-06",
     issuer: "Root Administrator Bypass",
     date: "VISITOR ACTION",
-    xp: "+35 XP",
+    badge: "EASTER EGG",
     icon: "☕",
     unlocked: false,
     description: "Attempted to execute `sudo coffee` in the terminal to request privileged coffee rations."
@@ -160,7 +160,7 @@ export const achievementsList = [
     code: "EXP-07",
     issuer: "Classified Subroutine",
     date: "VISITOR ACTION",
-    xp: "+100 XP",
+    badge: "SECRET OVERRIDE",
     icon: "🔮",
     unlocked: false,
     description: "Unlocked the secret alternate NIGHT // VIOLET theme by discovering the hidden system override."

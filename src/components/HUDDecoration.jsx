@@ -29,8 +29,9 @@ export default function HUDDecoration() {
       <div className="cyber-scanlines" />
       <div className="cyber-grid-bg" />
 
-      {/* Top HUD Telemetry Bar (Subtle, non-distracting) */}
+      {/* Top HUD Telemetry Bar (Desktop only, hidden on mobile for clean viewport) */}
       <header
+        className="hud-top-telemetry hide-mobile"
         style={{
           position: "fixed",
           top: 0,

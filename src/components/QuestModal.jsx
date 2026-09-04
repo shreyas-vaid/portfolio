@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, CheckCircle2, AlertTriangle, Star } from "lucide-react";
 import { GithubIcon } from "./SocialIcons";
@@ -18,18 +19,21 @@ export default function QuestModal({ quest, onClose }) {
 
   if (!quest) return null;
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       <div
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 1000,
+          zIndex: 99999,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: "1rem"
+          padding: "clamp(1rem, 3vw, 2rem)",
+          overflowY: "auto"
         }}
+        role="dialog"
+        aria-modal="true"
       >
         {/* Backdrop */}
         <motion.div
@@ -41,39 +45,47 @@ export default function QuestModal({ quest, onClose }) {
             onClose();
           }}
           style={{
-            position: "absolute",
+            position: "fixed",
             inset: 0,
-            background: "rgba(5, 5, 5, 0.88)",
-            backdropFilter: "blur(8px)"
+            background: "rgba(5, 5, 5, 0.92)",
+            backdropFilter: "blur(12px)",
+            zIndex: 1
           }}
         />
 
         {/* Modal Window */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          initial={{ opacity: 0, scale: 0.96, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          exit={{ opacity: 0, scale: 0.96, y: 20 }}
           transition={{ type: "spring", damping: 30, stiffness: 400 }}
           style={{
             position: "relative",
             width: "100%",
-            maxWidth: "760px",
-            maxHeight: "90vh",
+            maxWidth: "780px",
+            maxHeight: "88vh",
             overflowY: "auto",
             background: "var(--bg-surface)",
             border: "1px solid var(--accent-red)",
-            boxShadow: "0 0 50px rgba(255, 0, 60, 0.2)",
+            boxShadow: "0 0 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 0, 60, 0.25)",
             padding: "clamp(1.25rem, 4vw, 2.25rem)",
-            color: "var(--text-primary)"
+            color: "var(--text-primary)",
+            zIndex: 2,
+            margin: "auto"
           }}
           className="chamfer-sm"
         >
           <div className="corner-bracket-tl" />
           <div className="corner-bracket-br" />
 
-          {/* Top Bar */}
+          {/* Sticky Top Bar — Guarantees close button is NEVER hidden */}
           <div
             style={{
+              position: "sticky",
+              top: "-0.5rem",
+              background: "var(--bg-surface)",
+              zIndex: 10,
+              paddingTop: "0.5rem",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -114,32 +126,38 @@ export default function QuestModal({ quest, onClose }) {
               }}
               onMouseEnter={playHoverSound}
               data-cursor="CLOSE"
+              aria-label="Close modal"
               style={{
-                background: "transparent",
-                border: "1px solid var(--border-mid)",
-                color: "var(--text-muted)",
-                width: "38px",
-                height: "38px",
+                background: "rgba(255, 0, 60, 0.1)",
+                border: "1px solid var(--accent-red)",
+                color: "#ffffff",
+                padding: "6px 14px",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
+                gap: "6px",
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                borderRadius: "2px",
                 transition: "all var(--transition-fast)"
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.borderColor = "var(--accent-red)";
+                e.currentTarget.style.background = "var(--accent-red)";
                 e.currentTarget.style.color = "#fff";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.borderColor = "var(--border-mid)";
-                e.currentTarget.style.color = "var(--text-muted)";
+                e.currentTarget.style.background = "rgba(255, 0, 60, 0.1)";
+                e.currentTarget.style.color = "#ffffff";
               }}
             >
-              <X size={20} />
+              <X size={16} />
+              <span>CLOSE</span>
             </button>
           </div>
 
-          {/* Title & XP */}
+          {/* Title & Badge */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
             <div>
               <h2
@@ -164,11 +182,10 @@ export default function QuestModal({ quest, onClose }) {
                 // {quest.subtitle}
               </div>
             </div>
-
             <span
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "0.85rem",
+                fontSize: "0.75rem",
                 color: "#00ff66",
                 fontWeight: 700,
                 background: "rgba(0, 255, 102, 0.1)",
@@ -177,7 +194,7 @@ export default function QuestModal({ quest, onClose }) {
                 whiteSpace: "nowrap"
               }}
             >
-              {quest.xp}
+              {quest.badge || quest.type || "COMPLETED MISSION"}
             </span>
           </div>
 
@@ -191,112 +208,146 @@ export default function QuestModal({ quest, onClose }) {
               marginBottom: "1.75rem"
             }}
           >
-            {quest.summary}
+            {quest.fullSummary || quest.summary}
           </p>
 
-          {/* Problem & Solution Panels */}
+          {/* Challenges & Solution Matrix */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
               gap: "1.25rem",
-              marginBottom: "1.75rem"
+              marginBottom: "2rem"
             }}
           >
-            {/* Problem */}
-            <div
-              style={{
-                background: "var(--bg-panel)",
-                border: "1px solid var(--border-subtle)",
-                padding: "1.25rem"
-              }}
-              className="chamfer-sm"
-            >
+            {quest.challenge && (
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.75rem",
-                  color: "var(--accent-red)",
-                  fontWeight: 700,
-                  marginBottom: "0.5rem"
+                  background: "rgba(255, 0, 60, 0.04)",
+                  border: "1px solid rgba(255, 0, 60, 0.2)",
+                  padding: "1.25rem"
                 }}
+                className="chamfer-sm"
               >
-                <AlertTriangle size={14} />
-                <span>CHALLENGE / PROBLEM</span>
-              </div>
-              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
-                {quest.problem}
-              </p>
-            </div>
-
-            {/* Solution */}
-            <div
-              style={{
-                background: "var(--bg-panel)",
-                border: "1px solid var(--border-subtle)",
-                padding: "1.25rem"
-              }}
-              className="chamfer-sm"
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.75rem",
-                  color: "#00ff66",
-                  fontWeight: 700,
-                  marginBottom: "0.5rem"
-                }}
-              >
-                <CheckCircle2 size={14} />
-                <span>ENGINEERING SOLUTION</span>
-              </div>
-              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.5 }}>
-                {quest.solution}
-              </p>
-            </div>
-          </div>
-
-          {/* Key Features */}
-          <div style={{ marginBottom: "1.75rem" }}>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.75rem",
-                color: "var(--text-dim)",
-                letterSpacing: "0.1em",
-                marginBottom: "0.75rem"
-              }}
-            >
-              KEY TACTICAL CAPABILITIES
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {quest.keyFeatures.map((feat, i) => (
                 <div
-                  key={i}
                   style={{
                     display: "flex",
-                    alignItems: "baseline",
-                    gap: "10px",
-                    fontSize: "0.85rem",
-                    color: "var(--text-primary)"
+                    alignItems: "center",
+                    gap: "8px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.75rem",
+                    color: "var(--accent-red-bright)",
+                    fontWeight: 700,
+                    marginBottom: "0.5rem"
                   }}
                 >
-                  <span style={{ color: "var(--accent-red)", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
-                    0{i + 1}.
-                  </span>
-                  <span>{feat}</span>
+                  <AlertTriangle size={15} />
+                  <span>CHALLENGE / PROBLEM</span>
                 </div>
-              ))}
-            </div>
+                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
+                  {quest.challenge}
+                </p>
+              </div>
+            )}
+
+            {quest.solution && (
+              <div
+                style={{
+                  background: "rgba(0, 255, 102, 0.04)",
+                  border: "1px solid rgba(0, 255, 102, 0.2)",
+                  padding: "1.25rem"
+                }}
+                className="chamfer-sm"
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.75rem",
+                    color: "#00ff66",
+                    fontWeight: 700,
+                    marginBottom: "0.5rem"
+                  }}
+                >
+                  <CheckCircle2 size={15} />
+                  <span>ENGINEERING SOLUTION</span>
+                </div>
+                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
+                  {quest.solution}
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Technologies Used */}
+          {/* Key Tactical Features */}
+          {quest.features && (
+            <div style={{ marginBottom: "2rem" }}>
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.75rem",
+                  color: "var(--text-dim)",
+                  letterSpacing: "0.1em",
+                  marginBottom: "0.75rem"
+                }}
+              >
+                KEY TACTICAL CAPABILITIES
+              </div>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "8px" }}>
+                {quest.features.map((feat, idx) => (
+                  <li
+                    key={idx}
+                    style={{
+                      display: "flex",
+                      alignItems: "baseline",
+                      gap: "10px",
+                      fontSize: "0.85rem",
+                      color: "var(--text-muted)"
+                    }}
+                  >
+                    <span style={{ color: "var(--accent-red)", fontFamily: "var(--font-mono)", fontSize: "0.75rem", fontWeight: 700 }}>
+                      0{idx + 1}.
+                    </span>
+                    <span>{feat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Architecture / Highlights */}
+          {quest.architecture && (
+            <div style={{ marginBottom: "2rem" }}>
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.75rem",
+                  color: "var(--text-dim)",
+                  letterSpacing: "0.1em",
+                  marginBottom: "0.75rem"
+                }}
+              >
+                SYSTEM ARCHITECTURE & DESIGN
+              </div>
+              <div
+                style={{
+                  background: "var(--bg-panel)",
+                  border: "1px solid var(--border-subtle)",
+                  padding: "1rem 1.25rem",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.8rem",
+                  color: "var(--text-muted)",
+                  lineHeight: 1.6
+                }}
+              >
+                {quest.architecture}
+              </div>
+            </div>
+          )}
+
+          {/* Tech Stack Chips */}
           <div style={{ marginBottom: "2rem" }}>
             <div
               style={{
@@ -381,4 +432,7 @@ export default function QuestModal({ quest, onClose }) {
       </div>
     </AnimatePresence>
   );
+
+  if (typeof document === "undefined") return modalContent;
+  return createPortal(modalContent, document.body);
 }

@@ -17,7 +17,6 @@ export default function InventoryModal({ isOpen, onClose }) {
 
   useEffect(() => {
     if (isOpen) {
-      gameState.awardXP("open_inventory_modal", 15, "INVENTORY ACCESSED");
       gameState.unlockAchievement("ach-exp-inventory", "QUARTERMASTER");
     }
   }, [isOpen]);

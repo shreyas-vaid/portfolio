@@ -1,0 +1,308 @@
+/* Cyberpunk / JRPG Responsive Navbar & Mobile Drawer Styling */
+
+.cyber-nav-container {
+  position: fixed;
+  top: 36px;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(13, 13, 13, 0.94);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(1rem, 3vw, 2.5rem);
+  z-index: 75;
+  transition: top 0.2s ease, height 0.2s ease;
+}
+
+.cyber-brand-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+}
+
+.cyber-brand-badge {
+  width: 28px;
+  height: 28px;
+  background: var(--accent-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  font-family: var(--font-display);
+  color: #fff;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+
+.cyber-brand-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.cyber-brand-sub {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--accent-red-bright);
+  letter-spacing: 0.15em;
+  margin-top: 2px;
+}
+
+/* Desktop Links */
+.desktop-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-link-btn {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px 4px;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.nav-link-num {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.nav-link-btn.active .nav-link-num {
+  color: var(--accent-red);
+}
+
+.nav-link-label {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.nav-link-btn.active .nav-link-label,
+.nav-link-btn:hover .nav-link-label {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.nav-active-bar {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-red);
+  box-shadow: 0 0 8px var(--accent-red);
+}
+
+/* Mobile Header Controls */
+.mobile-header-controls {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-icon-btn {
+  background: rgba(22, 22, 26, 0.9);
+  border: 1px solid var(--border-mid);
+  color: var(--text-primary);
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+.mobile-icon-btn:hover,
+.mobile-icon-btn:active {
+  border-color: var(--accent-red);
+  color: #ffffff;
+  background: rgba(255, 0, 60, 0.15);
+}
+
+.mobile-icon-btn.active {
+  border-color: var(--accent-red);
+  color: var(--accent-red-bright);
+  background: var(--accent-red-subtle);
+}
+
+/* Mobile Drawer Overlay */
+.cyber-mobile-drawer {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(8, 8, 8, 0.98);
+  backdrop-filter: blur(20px);
+  z-index: 74;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.25rem 2.5rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  animation: drawer-fade-in 0.2s ease-out;
+}
+
+@keyframes drawer-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.drawer-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.drawer-nav-item {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.drawer-item-num {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent-red);
+  font-weight: 700;
+}
+
+.drawer-item-label {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+/* Mobile Tactical Tools Card in Drawer */
+.drawer-tactical-card {
+  background: rgba(18, 18, 24, 0.95);
+  border: 1px solid var(--border-mid);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.drawer-card-title {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--accent-red-bright);
+  letter-spacing: 0.12em;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.drawer-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.drawer-tool-btn {
+  background: rgba(28, 28, 36, 0.9);
+  border: 1px solid var(--border-mid);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 10px 8px;
+  cursor: pointer;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  min-height: 44px;
+}
+
+.drawer-tool-btn:active {
+  border-color: var(--accent-red);
+  background: rgba(255, 0, 60, 0.2);
+  transform: scale(0.98);
+}
+
+.drawer-tool-btn.theme-btn {
+  border-color: #a855f7;
+  color: #d8b4fe;
+}
+
+.drawer-footer-status {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+/* Mobile Breakpoint Overrides */
+@media (max-width: 768px) {
+  .cyber-nav-container {
+    top: 0 !important;
+    height: 56px !important;
+    padding: 0 1rem !important;
+  }
+
+  .desktop-nav-links {
+    display: none !important;
+  }
+
+  .mobile-header-controls {
+    display: flex !important;
+  }
+
+  .cyber-brand-name {
+    font-size: 0.95rem !important;
+  }
+
+  .cyber-brand-sub {
+    font-size: 0.58rem !important;
+  }
+}

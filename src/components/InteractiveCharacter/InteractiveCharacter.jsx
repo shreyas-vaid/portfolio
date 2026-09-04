@@ -35,7 +35,7 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
         window.innerWidth <= 768)
   );
 
-  // Narrator reaction to game events (XP, items, achievements, secrets)
+  // Narrator reaction to game events (items, achievements, secrets)
   useEffect(() => {
     const unsub = gameState.subscribeToasts((toast) => {
       if (toast.message.includes("VIOLET")) {
@@ -44,8 +44,6 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
         setDialogue("ACHIEVEMENT UNLOCKED!");
       } else if (toast.message.includes("ITEM")) {
         setDialogue("YOU FOUND SOMETHING.");
-      } else if (toast.message.includes("XP")) {
-        setDialogue("NICE. YOU'RE EXPLORING.");
       }
     });
     return unsub;
