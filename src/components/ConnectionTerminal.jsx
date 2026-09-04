@@ -78,22 +78,30 @@ export default function ConnectionTerminal() {
 
   return (
     <div
-      className="cyber-grid-auto-fit"
+      className="cyber-grid-auto-fit connection-grid-container"
       style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
-        gap: "2rem"
+        gap: "2rem",
+        width: "100%",
+        maxWidth: "100%",
+        boxSizing: "border-box"
       }}
     >
       {/* Left: Terminal Meta & Available Comms Channels */}
       <div
+        className="chamfer-sm connection-card"
         style={{
           background: "var(--bg-panel)",
           border: "1px solid var(--border-subtle)",
-          padding: "2rem",
-          position: "relative"
+          padding: "clamp(1.2rem, 4vw, 2rem)",
+          position: "relative",
+          width: "100%",
+          maxWidth: "100%",
+          boxSizing: "border-box",
+          minWidth: 0,
+          overflow: "hidden"
         }}
-        className="chamfer-sm"
       >
         <div className="corner-bracket-tl" />
 
@@ -109,7 +117,15 @@ export default function ConnectionTerminal() {
           // COMMS_HUB // PROTOCOL_07
         </div>
 
-        <h3 style={{ fontSize: "1.6rem", color: "#ffffff", fontWeight: 700, marginBottom: "0.5rem" }}>
+        <h3
+          style={{
+            fontSize: "clamp(1.2rem, 5vw, 1.6rem)",
+            color: "#ffffff",
+            fontWeight: 700,
+            marginBottom: "0.5rem",
+            wordBreak: "break-word"
+          }}
+        >
           TRANSMISSION TARGET
         </h3>
 
@@ -119,7 +135,8 @@ export default function ConnectionTerminal() {
             fontSize: "0.85rem",
             color: "var(--text-muted)",
             lineHeight: 1.6,
-            marginBottom: "1.75rem"
+            marginBottom: "1.75rem",
+            wordBreak: "break-word"
           }}
         >
           <div>TARGET: <strong style={{ color: "#ffffff" }}>SHREYAS VAID</strong></div>
@@ -141,7 +158,7 @@ export default function ConnectionTerminal() {
           DIRECT COMMUNICATION FREQUENCIES:
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%", maxWidth: "100%", minWidth: 0 }}>
           {socialLinks.map((channel) => (
             <a
               key={channel.id}
@@ -154,34 +171,39 @@ export default function ConnectionTerminal() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                padding: "10px 14px",
+                padding: "10px 12px",
                 background: "var(--bg-surface)",
                 border: "1px solid var(--border-subtle)",
                 color: "var(--text-primary)",
                 textDecoration: "none",
-                transition: "all var(--transition-fast)"
+                transition: "all var(--transition-fast)",
+                width: "100%",
+                maxWidth: "100%",
+                minWidth: 0,
+                boxSizing: "border-box",
+                overflow: "hidden"
               }}
               onMouseOver={(e) => {
                 e.currentTarget.style.borderColor = "var(--accent-red)";
-                e.currentTarget.style.transform = "translateX(4px)";
+                e.currentTarget.style.transform = "translateX(2px)";
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.borderColor = "var(--border-subtle)";
                 e.currentTarget.style.transform = "translateX(0)";
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ color: "var(--accent-red)" }}>{getSocialIcon(channel.icon)}</span>
-                <div>
-                  <div style={{ fontFamily: "var(--font-display)", fontSize: "0.85rem", fontWeight: 700 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1, overflow: "hidden" }}>
+                <span style={{ color: "var(--accent-red)", flexShrink: 0 }}>{getSocialIcon(channel.icon)}</span>
+                <div style={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
+                  <div style={{ fontFamily: "var(--font-display)", fontSize: "0.85rem", fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {channel.name}
                   </div>
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-dim)" }}>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-dim)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {channel.handle}
                   </div>
                 </div>
               </div>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: "var(--text-dim)" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: "var(--text-dim)", flexShrink: 0, marginLeft: "8px" }}>
                 [ACCESS]
               </span>
             </a>
@@ -191,13 +213,18 @@ export default function ConnectionTerminal() {
 
       {/* Right: Message Dispatch Terminal Form */}
       <div
+        className="chamfer-sm connection-card"
         style={{
           background: "var(--bg-panel)",
           border: "1px solid var(--border-subtle)",
-          padding: "2rem",
-          position: "relative"
+          padding: "clamp(1.2rem, 4vw, 2rem)",
+          position: "relative",
+          width: "100%",
+          maxWidth: "100%",
+          boxSizing: "border-box",
+          minWidth: 0,
+          overflow: "hidden"
         }}
-        className="chamfer-sm"
       >
         <div className="corner-bracket-br" />
 
@@ -208,15 +235,20 @@ export default function ConnectionTerminal() {
             alignItems: "center",
             borderBottom: "1px solid var(--border-subtle)",
             paddingBottom: "0.75rem",
-            marginBottom: "1.5rem"
+            marginBottom: "1.5rem",
+            gap: "8px",
+            minWidth: 0,
+            width: "100%",
+            maxWidth: "100%"
           }}
         >
           <span
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "0.95rem",
+              fontSize: "clamp(0.85rem, 4vw, 0.95rem)",
               fontWeight: 700,
-              color: "#ffffff"
+              color: "#ffffff",
+              whiteSpace: "nowrap"
             }}
           >
             DISPATCH PAYLOAD
@@ -228,7 +260,8 @@ export default function ConnectionTerminal() {
               color: "var(--accent-red-bright)",
               background: "var(--accent-red-subtle)",
               border: "1px solid var(--accent-red)",
-              padding: "2px 8px"
+              padding: "2px 8px",
+              flexShrink: 0
             }}
           >
             AES-256
@@ -270,9 +303,9 @@ export default function ConnectionTerminal() {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem", width: "100%", maxWidth: "100%", minWidth: 0, boxSizing: "border-box" }}>
             {/* Name Field */}
-            <div>
+            <div style={{ width: "100%", maxWidth: "100%" }}>
               <label
                 style={{
                   display: "block",
@@ -292,6 +325,8 @@ export default function ConnectionTerminal() {
                 disabled={transmitting}
                 style={{
                   width: "100%",
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
                   padding: "10px 12px",
                   background: "var(--bg-surface)",
                   border: `1px solid ${errors.name ? "var(--accent-red)" : "var(--border-mid)"}`,
@@ -306,7 +341,7 @@ export default function ConnectionTerminal() {
             </div>
 
             {/* Email Field */}
-            <div>
+            <div style={{ width: "100%", maxWidth: "100%" }}>
               <label
                 style={{
                   display: "block",
@@ -326,6 +361,8 @@ export default function ConnectionTerminal() {
                 disabled={transmitting}
                 style={{
                   width: "100%",
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
                   padding: "10px 12px",
                   background: "var(--bg-surface)",
                   border: `1px solid ${errors.email ? "var(--accent-red)" : "var(--border-mid)"}`,
@@ -340,7 +377,7 @@ export default function ConnectionTerminal() {
             </div>
 
             {/* Message Field */}
-            <div>
+            <div style={{ width: "100%", maxWidth: "100%" }}>
               <label
                 style={{
                   display: "block",
@@ -360,6 +397,8 @@ export default function ConnectionTerminal() {
                 disabled={transmitting}
                 style={{
                   width: "100%",
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
                   padding: "10px 12px",
                   background: "var(--bg-surface)",
                   border: `1px solid ${errors.message ? "var(--accent-red)" : "var(--border-mid)"}`,
@@ -386,7 +425,11 @@ export default function ConnectionTerminal() {
                   color: "#ff2a55",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "4px"
+                  gap: "4px",
+                  width: "100%",
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
+                  wordBreak: "break-all"
                 }}
               >
                 {terminalLogs.map((log, i) => (
@@ -402,7 +445,13 @@ export default function ConnectionTerminal() {
               onMouseEnter={playHoverSound}
               data-cursor="TRANSMIT"
               className="btn-cyber-primary"
-              style={{ width: "100%", marginTop: "0.5rem" }}
+              style={{
+                width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box",
+                marginTop: "0.5rem",
+                fontSize: "clamp(0.82rem, 3.5vw, 0.95rem)"
+              }}
             >
               <Send size={16} />
               <span>{transmitting ? "ENCRYPTING & TRANSMITTING..." : "[ TRANSMIT MESSAGE ]"}</span>

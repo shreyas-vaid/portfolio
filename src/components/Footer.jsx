@@ -40,10 +40,11 @@ export default function Footer() {
               fontFamily: "var(--font-mono)",
               fontSize: "0.72rem",
               color: "#00ff66",
-              marginBottom: "0.6rem"
+              marginBottom: "0.6rem",
+              flexWrap: "wrap"
             }}
           >
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#00ff66" }} />
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#00ff66", flexShrink: 0 }} />
             <span>SYSTEM STATUS: ONLINE // ALL CHANNELS ACTIVE</span>
           </div>
 

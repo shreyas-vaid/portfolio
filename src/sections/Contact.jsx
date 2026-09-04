@@ -7,8 +7,11 @@ export default function Contact() {
       style={{
         padding: "6rem 2rem 8rem",
         maxWidth: "1240px",
+        width: "100%",
         margin: "0 auto",
-        position: "relative"
+        position: "relative",
+        boxSizing: "border-box",
+        overflowX: "hidden"
       }}
     >
       {/* Section Header */}
