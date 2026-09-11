@@ -29,9 +29,9 @@ export const profileData = {
 
   identityDetails: {
     education: {
-      degree: "Computer Science / Engineering Studies",
-      institution: "Undergraduate Education",
-      year: "2023 — Present",
+      degree: "Bachelor of Engineering (Computer Science)",
+      institution: "Chandigarh University",
+      year: "Expected May 2028 · CGPA 7.02",
       status: "ACTIVE"
     },
     currentFocus: "High-performance web applications, creative interactive interfaces, and data-driven analytical systems.",

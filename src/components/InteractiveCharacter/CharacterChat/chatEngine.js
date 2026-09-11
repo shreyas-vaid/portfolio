@@ -3,7 +3,6 @@ import { profileData } from "../../../data/profile";
 import { abilityCategories } from "../../../data/skills";
 import { questProjects } from "../../../data/projects";
 import { missionHistory } from "../../../data/experience";
-import { achievementsData } from "../../../data/achievements";
 
 // Initial greeting message when chatbot boots up
 export const INITIAL_BOT_MESSAGE = {

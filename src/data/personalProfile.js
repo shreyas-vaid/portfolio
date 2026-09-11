@@ -31,6 +31,10 @@ export const personalProfile = {
     "A good coffee or refreshing tea is an essential coding fuel."
     // Feel free to add your favorite cuisines, snacks, or dishes here!
   ],
+  favoriteFoods: [
+    "Enjoys exploring diverse street foods, comfort classics, and hearty meals after a long coding streak.",
+    "A good coffee or refreshing tea is an essential coding fuel."
+  ],
 
   // Hobbies & activities outside coding
   hobbies: [

@@ -12,7 +12,6 @@ import "./character.css";
 export default function InteractiveCharacter({ activeSection = "hero" }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [viewState, setViewState] = useState("FRONT");
-  const [characterPose, setCharacterPose] = useState("FRONT");
   const [dialogue, setDialogue] = useState(() => {
     if (gameState.state.visitCount > 1) {
       const returnQuotes = [
@@ -69,7 +68,8 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
     if (!isChatOpen && activeSection) {
       const text = SECTION_DIALOGUES[activeSection];
       if (text) {
-        setDialogue(text);
+        const timer = setTimeout(() => setDialogue(text), 0);
+        return () => clearTimeout(timer);
       }
     }
   }, [activeSection, isChatOpen]);
@@ -77,8 +77,8 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
   // Subtle cursor gaze tracking when chat is CLOSED on desktop
   useEffect(() => {
     if (isChatOpen || isTouchDevice.current) {
-      setViewState("FRONT");
-      return;
+      const timer = setTimeout(() => setViewState("FRONT"), 0);
+      return () => clearTimeout(timer);
     }
 
     const onMouseMove = (e) => {
@@ -115,7 +115,6 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
     setIsChatOpen(nextState);
     if (nextState) {
       setViewState("FRONT");
-      setCharacterPose("FRONT");
       setShowCallout(false);
     } else {
       setShowCallout(true);
@@ -123,7 +122,6 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
   };
 
   const handleSetCharacterPose = (pose) => {
-    setCharacterPose(pose);
     setViewState(pose || "FRONT");
   };
 

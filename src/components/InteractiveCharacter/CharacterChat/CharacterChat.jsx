@@ -4,6 +4,9 @@ import SuggestedQuestions from "./SuggestedQuestions";
 import { INITIAL_BOT_MESSAGE, processQuery } from "./chatEngine";
 import "./chat.css";
 
+import { sendChatMessage } from "../../../services/api";
+import { gameState } from "../../../utils/gameState";
+
 export default function CharacterChat({ isOpen, onClose, onSetCharacterPose }) {
   const [messages, setMessages] = useState([INITIAL_BOT_MESSAGE]);
   const [inputValue, setInputValue] = useState("");
@@ -26,7 +29,7 @@ export default function CharacterChat({ isOpen, onClose, onSetCharacterPose }) {
     }
   }, [isOpen, messages]);
 
-  const handleSendMessage = (textToSend) => {
+  const handleSendMessage = async (textToSend) => {
     const text = (textToSend || inputValue).trim();
     if (!text || isThinking) return;
 
@@ -43,9 +46,23 @@ export default function CharacterChat({ isOpen, onClose, onSetCharacterPose }) {
     setIsThinking(true);
     if (onSetCharacterPose) onSetCharacterPose("THINKING");
 
-    // Realistic brief typing/retrieval delay (400–600ms)
-    setTimeout(() => {
-      const response = processQuery(text);
+    try {
+      const sessionId = gameState.state.sessionId || "anonymous";
+      const apiResult = await sendChatMessage(sessionId, text);
+
+      let response;
+      if (apiResult && apiResult.success && apiResult.data) {
+        response = {
+          sender: "bot",
+          text: apiResult.data.message,
+          pose: apiResult.data.pose || "FRONT",
+          timestamp: apiResult.data.timestamp || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        };
+      } else {
+        // Fallback: If network is offline or API fails, gracefully fallback to local processQuery
+        response = processQuery(text);
+      }
+
       const botMsg = {
         id: `bot-${Date.now()}`,
         ...response
@@ -54,7 +71,12 @@ export default function CharacterChat({ isOpen, onClose, onSetCharacterPose }) {
       setMessages((prev) => [...prev, botMsg]);
       setIsThinking(false);
       if (onSetCharacterPose) onSetCharacterPose(response.pose || "FRONT");
-    }, 550);
+    } catch {
+      const response = processQuery(text);
+      setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, ...response }]);
+      setIsThinking(false);
+      if (onSetCharacterPose) onSetCharacterPose(response.pose || "FRONT");
+    }
   };
 
   const handleKeyDown = (e) => {

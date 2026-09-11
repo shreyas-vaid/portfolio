@@ -6,18 +6,23 @@ export default function CharacterDialogue({ message, duration = 3800 }) {
 
   useEffect(() => {
     if (!message) {
-      setVisible(false);
-      return;
+      const hideTimer = setTimeout(() => setVisible(false), 0);
+      return () => clearTimeout(hideTimer);
     }
 
-    setCurrentText(message);
-    setVisible(true);
+    const showTimer = setTimeout(() => {
+      setCurrentText(message);
+      setVisible(true);
+    }, 0);
 
-    const timer = setTimeout(() => {
+    const hideTimer = setTimeout(() => {
       setVisible(false);
     }, duration);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
   }, [message, duration]);
 
   if (!visible || !currentText) return null;

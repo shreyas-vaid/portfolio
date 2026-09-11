@@ -1,7 +1,6 @@
 import { ArrowDown, FileText, ChevronRight, Terminal } from "lucide-react";
 import CharacterStats from "../components/CharacterStats";
 import { profileData } from "../data/profile";
-import { resumeConfig } from "../data/socials";
 import { playHoverSound, playSelectSound } from "../utils/sound";
 
 export default function Hero() {
@@ -9,12 +8,6 @@ export default function Hero() {
     playSelectSound();
     const el = document.getElementById("identity");
     if (el) el.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleResumeClick = () => {
-    playSelectSound();
-    // Open resume or fallback mailto if file not uploaded yet
-    window.open(resumeConfig.fileUrl, "_blank");
   };
 
   return (
