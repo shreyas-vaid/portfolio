@@ -43,7 +43,7 @@ export function processQuery(userQuery) {
     }
     return {
       sender: "bot",
-      text: "I don't have Shreyas's exact favorite playlist indexed in my files yet 😅! Ask him directly in the transmission terminal below.",
+      text: "I don't have that information about Shreyas yet.",
       pose: "CONFUSED",
       timestamp: time
     };
@@ -62,7 +62,7 @@ export function processQuery(userQuery) {
     }
     return {
       sender: "bot",
-      text: "I don't have his favorite dish on file yet 😅! You'll have to ask Shreyas in the contact section.",
+      text: "I don't have that information about Shreyas yet.",
       pose: "CONFUSED",
       timestamp: time
     };
@@ -71,11 +71,19 @@ export function processQuery(userQuery) {
   // 4. HOBBIES & LIFE OUTSIDE CODING
   if (/hobby|hobbies|free time|outside coding|not coding|weekend|fun|games|gaming/i.test(query)) {
     lastIntent = "HOBBIES";
-    const bullets = personalProfile.hobbies.map(h => `• ${h}`).join("\n");
+    if (personalProfile.hobbies && personalProfile.hobbies.length > 0) {
+      const bullets = personalProfile.hobbies.map(h => `• ${h}`).join("\n");
+      return {
+        sender: "bot",
+        text: `🎮 **LIFE OUTSIDE THE TERMINAL**\n${bullets}`,
+        pose: "FRONT",
+        timestamp: time
+      };
+    }
     return {
       sender: "bot",
-      text: `🎮 **LIFE OUTSIDE THE TERMINAL**\n${bullets}`,
-      pose: "FRONT",
+      text: "I don't have that information about Shreyas yet.",
+      pose: "CONFUSED",
       timestamp: time
     };
   }
@@ -83,11 +91,19 @@ export function processQuery(userQuery) {
   // 5. PERSONALITY
   if (/personality|vibe|what is he like|character|traits|how is he/i.test(query)) {
     lastIntent = "PERSONALITY";
-    const bullets = personalProfile.personality.map(p => `• ${p}`).join("\n");
+    if (personalProfile.personality && personalProfile.personality.length > 0) {
+      const bullets = personalProfile.personality.map(p => `• ${p}`).join("\n");
+      return {
+        sender: "bot",
+        text: `🧠 **SHREYAS'S VIBE & PERSONALITY**\n${bullets}`,
+        pose: "FRONT",
+        timestamp: time
+      };
+    }
     return {
       sender: "bot",
-      text: `🧠 **SHREYAS'S VIBE & PERSONALITY**\n${bullets}`,
-      pose: "FRONT",
+      text: "I don't have that information about Shreyas yet.",
+      pose: "CONFUSED",
       timestamp: time
     };
   }

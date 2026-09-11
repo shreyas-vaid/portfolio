@@ -1,6 +1,6 @@
 /**
  * Central Portfolio API Client Service
- * Encapsulates network operations, error handling, and offline resilience.
+ * Encapsulates network operations, error normalization, and offline resilience.
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
@@ -9,14 +9,20 @@ async function fetchWithTimeout(endpoint, options = {}, timeoutMs = 8000) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+  const method = (options.method || "GET").toUpperCase();
+  const isBodyMethod = method === "POST" || method === "PUT" || method === "PATCH";
+
+  const headers = {
+    ...(isBodyMethod ? { "Content-Type": "application/json" } : {}),
+    ...(options.headers || {})
+  };
+
   try {
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {})
-      }
+      method,
+      headers,
+      signal: controller.signal
     });
     clearTimeout(timeoutId);
 
@@ -85,7 +91,7 @@ export async function getGameState(sessionId) {
 
 /**
  * Synchronize Game Progress to Server
- * Client never sends arbitrary XP; awards are calculated by the server.
+ * Client never sends arbitrary XP; awards are calculated authoritatively by the server.
  */
 export async function saveGameProgress(sessionId, action) {
   if (!sessionId || !action) {

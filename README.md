@@ -1,12 +1,12 @@
 # Shreyas Vaid — Developer & Analyst Portfolio
 
-> Cyberpunk × JRPG tactical developer portfolio engineered with React, Vite, Framer Motion, and a lightweight, zero-dependency Node / Vercel Serverless backend.
+> Cyberpunk × JRPG tactical developer portfolio engineered with React, Vite, Framer Motion, and a hardened, zero-dependency Node / Vercel Serverless backend.
 
 ---
 
 ## 🏛️ Architecture Overview
 
-The system combines a reactive client-side frontend with an authoritative service layer and lightweight backend API:
+The system combines a reactive client-side frontend with an authoritative service layer and hardened backend API:
 
 ```
              ┌──────────────────────────────┐
@@ -27,26 +27,42 @@ The system combines a reactive client-side frontend with an authoritative servic
 (localStorage +              │             (POST /api/chat)
  Optional Sync)              │                     │
       │                      │                     ▼
-      ▼                      ▼              Rate-Limited AI
- Anonymous Session      Clean REST APIs      (Server-Side API Key
-   Persistence         (/api/profile, etc.)   Strict Factuality)
+      ▼                      ▼              Dual Rate-Limited
+ Anonymous Session      Clean REST APIs         AI Service
+   Persistence         (/api/profile, etc.)   (Server-Side Key
+(Primary Storage)                            Strict Factuality)
 ```
+
+> [!NOTE]
+> **Persistence Model**: Game progression uses `localStorage` as the primary durable persistence layer (`shreyas_os_state_v2`). Server-side game sessions are in-memory runtime synchronization state, not a permanent database.
 
 ---
 
 ## 🚀 API Endpoints
 
-All endpoints include security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`) and rate limiting where appropriate.
+All endpoints enforce security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy`), request IDs (`X-Request-ID`), strict method validation (`405 Method Not Allowed` with `Allow` header), and dual rate limiting.
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/api/health` | Service health status & build version. |
-| `GET` | `/api/profile` | Authoritative professional identity and verified attributes. |
-| `GET` | `/api/projects` | Quest & project portfolio records. |
-| `GET` | `/api/experience`| Verified operational timeline (ThinkNEXT internship, etc.). |
-| `GET` | `/api/game/state` | Retrieves server-side game telemetry for an anonymous `sessionId`. |
-| `POST` | `/api/game/progress`| Validates actions against anti-cheat rewards table and updates XP/level. |
+| `GET` | `/api/health` | Lightweight service health status & version (no-cache). |
+| `GET` | `/api/profile` | Authoritative professional identity and verified attributes (cached). |
+| `GET` | `/api/projects` | Verified quest & project portfolio records (cached). |
+| `GET` | `/api/experience`| Verified operational timeline (ThinkNEXT internship, etc.) (cached). |
+| `GET` | `/api/game/state` | Retrieves server runtime session state for an anonymous UUID `sessionId`. |
+| `POST` | `/api/game/progress`| Validates actions against canonical `XP_ACTIONS` table and updates XP/level. |
 | `POST` | `/api/chat` | Secure SV-01 companion AI endpoint with strict factual anti-hallucination guards. |
+
+---
+
+## 🔒 Security & Hardening Features
+
+1. **Canonical XP Action Registry**: Both client and server consume the single source of truth in `src/data/xpConfig.js`. Clients cannot submit arbitrary amounts or fake actions; all XP is calculated authoritatively.
+2. **Session ID Validation**: Strictly validates RFC4122 UUID format. Malformed, long, or non-UUID session IDs are rejected with `400 INVALID_SESSION`.
+3. **Dual Rate Limiting**: Enforces rate limiting on both client IP address (30 req / 10 min) and session ID (20 req / 10 min), preventing session-rotation bypass attacks.
+4. **32 KB Request Cap & Content-Type Validation**: POST requests strictly require `Content-Type: application/json` and reject payloads larger than 32 KB with `413 PAYLOAD_TOO_LARGE`.
+5. **Request IDs & Structured Logs**: Every request is assigned a unique `X-Request-ID` attached to responses and server logs.
+6. **Strict Content Security Policy**: Comprehensive CSP compatible with Vite, Google Fonts, Web Audio API, and Gemini API without breaking inline React styles.
+7. **Strict Anti-Hallucination AI Prompting**: Dynamically assembled from canonical data files (`src/data/personalProfile.js`, `profile.js`, `skills.js`, etc.). Unindexed personal details strictly trigger: *"I don't have that information about Shreyas yet."*
 
 ---
 
@@ -64,10 +80,11 @@ cp .env.example .env.local
 | `AI_MODEL` | Optional | Model identifier (Default: `gemini-1.5-flash`). |
 | `PORT` | Optional | Port for the standalone Node server (Default: `3000`). |
 | `VITE_API_BASE_URL` | Optional | Base URL for remote API calls; leave empty for same-origin dev and production. |
+| `ALLOWED_ORIGIN` | Optional | Specific allowed CORS origin for cross-origin production hosting. |
 
 ---
 
-## 💻 Local Development
+## 💻 Local Development & Testing
 
 1. **Install dependencies**:
    ```bash
@@ -78,14 +95,18 @@ cp .env.example .env.local
    ```bash
    npm run dev
    ```
-   *Vite serves both the client app and all `/api/*` endpoints directly without needing multiple terminals.*
 
 3. **Run standalone backend server** (Optional):
    ```bash
    npm run start
    ```
 
-4. **Lint and Build**:
+4. **Run backend test suite**:
+   ```bash
+   npm test
+   ```
+
+5. **Lint and Build**:
    ```bash
    npm run lint
    npm run build
@@ -96,23 +117,7 @@ cp .env.example .env.local
 ## 🎮 Game State & XP Persistence
 
 - **Anonymous by Design**: Progress is tracked using an anonymous session UUID (`crypto.randomUUID()`). No accounts, passwords, or personal identifying information are required.
-- **Dual-Layer Resilience**: `localStorage` serves as the primary persistence layer (`shreyas_os_state_v2`). If the server is offline, all unlocks, themes, and achievements continue working seamlessly.
+- **Dual-Layer Resilience**: `localStorage` serves as the primary persistence layer (`shreyas_os_state_v2`). If the server restarts or is offline, all unlocks, themes, and achievements continue working seamlessly.
 - **Migration Engine**: Automatically migrates legacy `shreyas_os_state_v1` data without wiping user progress.
-- **Anti-Farming XP System**: Server-side action reward table (`XP_REWARDS`) prevents duplicate reward farming and ignores arbitrary client XP payloads.
+- **Anti-Farming XP System**: Server-side action reward table (`XP_ACTIONS`) prevents duplicate reward farming and ignores arbitrary client XP payloads.
 - **Secret Themes**: Unlocks such as the secret `NIGHT // VIOLET` visual protocol are preserved across sessions.
-
----
-
-## 🤖 Chibi AI Companion (SV-01) Setup
-
-- **Server-Side Security**: AI provider API keys remain strictly server-side.
-- **Strict Factuality**: The companion is strictly constrained to verified facts from the resume and `src/data/personalProfile.js`.
-- **Anti-Hallucination Guard**: Questions about unindexed personal details safely respond with: *"I don't have that information about Shreyas yet."*
-- **Offline Graceful Fallback**: If network is disconnected or API is unreachable, the client falls back to the local knowledge engine without interrupting the browsing experience.
-
----
-
-## 🌐 Deployment Notes
-
-- **Vercel**: The `/api` directory contains native Vercel serverless functions ready for production edge deployment.
-- **Node.js / VPS / Docker**: `server.js` provides a zero-dependency production HTTP server handling routing, security headers, and graceful shutdown (`SIGINT`, `SIGTERM`).

@@ -12,17 +12,34 @@ import experienceHandler from "./api/experience.js";
 import gameStateHandler from "./api/game/state.js";
 import gameProgressHandler from "./api/game/progress.js";
 import chatHandler from "./api/chat.js";
-import { applySecurityHeaders, sendJsonResponse } from "./server/lib/portfolioBackend.js";
+import {
+  applySecurityHeaders,
+  sendJsonResponse,
+  generateRequestId,
+  logEvent
+} from "./server/lib/portfolioBackend.js";
 
 const PORT = process.env.PORT || 3000;
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "";
 
 export const server = http.createServer(async (req, res) => {
-  applySecurityHeaders(res);
+  const reqId = generateRequestId();
+  applySecurityHeaders(res, reqId);
+
+  // Safe CORS Origin Handling
+  const origin = req.headers.origin;
+  if (origin) {
+    if (ALLOWED_ORIGIN && (origin === ALLOWED_ORIGIN || ALLOWED_ORIGIN === "*")) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    } else if (!ALLOWED_ORIGIN && (/^https?:\/\/localhost(:\d+)?$/.test(origin) || origin.endsWith(".vercel.app"))) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+    }
+  }
 
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Request-ID");
     res.statusCode = 204;
     res.end();
     return;
@@ -59,13 +76,13 @@ export const server = http.createServer(async (req, res) => {
     return sendJsonResponse(res, 404, {
       success: false,
       error: { code: "NOT_FOUND", message: `Endpoint '${pathname}' does not exist.` }
-    });
+    }, reqId);
   } catch (err) {
-    console.error(`[Server Error on ${pathname}]:`, err?.message || err);
+    logEvent(reqId, "SERVER_DISPATCH_EXCEPTION", err?.message || err);
     return sendJsonResponse(res, 500, {
       success: false,
       error: { code: "INTERNAL_SERVER_ERROR", message: "An unexpected error occurred." }
-    });
+    }, reqId);
   }
 });
 
@@ -75,15 +92,18 @@ if (process.argv[1] && process.argv[1].endsWith("server.js")) {
     console.log(`[SV Portfolio API] Server running on http://localhost:${PORT}`);
   });
 
-  // Graceful Shutdown
+  let isShuttingDown = false;
   const shutdown = (signal) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
     console.log(`[SV Portfolio API] Received ${signal}. Shutting down gracefully...`);
+
     server.close(() => {
       console.log("[SV Portfolio API] Server closed.");
       process.exit(0);
     });
 
-    // Force exit if hanging
+    // Force exit after 5s timeout if hanging
     setTimeout(() => {
       console.error("[SV Portfolio API] Force exit after timeout.");
       process.exit(1);

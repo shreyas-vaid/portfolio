@@ -1,7 +1,7 @@
 /**
- * Core Portfolio Backend Engine
- * Canonical data providers, security utilities, rate limiting,
- * deterministic XP engine, and Chibi AI companion service.
+ * Core Portfolio Backend Engine (Hardened Edition)
+ * Canonical data providers, security headers, dual rate limiting,
+ * deterministic XP engine, UUID validation, and Chibi AI companion service.
  */
 
 import { profileData } from "../../src/data/profile.js";
@@ -9,86 +9,140 @@ import { personalProfile } from "../../src/data/personalProfile.js";
 import { questProjects } from "../../src/data/projects.js";
 import { missionHistory } from "../../src/data/experience.js";
 import { abilityCategories } from "../../src/data/skills.js";
+import {
+  XP_ACTIONS,
+  LEVEL_THRESHOLDS,
+  calculateLevel,
+  getProgressToNextLevel,
+  calculateTotalXpFromActions
+} from "../../src/data/xpConfig.js";
 
 // ==========================================
-// 1. SECURITY & HEADERS
+// 1. REQUEST IDENTIFIERS & LOGGING
 // ==========================================
 
-export function applySecurityHeaders(res) {
+export function generateRequestId() {
+  const timestamp = Date.now().toString(36);
+  const rand = Math.random().toString(36).substring(2, 8);
+  return `req_${timestamp}_${rand}`;
+}
+
+export function logEvent(reqId, event, details = "") {
+  const time = new Date().toISOString();
+  console.log(`[${time}] [${reqId || "sys"}] ${event}${details ? ` - ${details}` : ""}`);
+}
+
+// ==========================================
+// 2. SECURITY HEADERS & CONTENT SECURITY POLICY
+// ==========================================
+
+const CSP_POLICY = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "img-src 'self' data: blob: https:",
+  "connect-src 'self' https://generativelanguage.googleapis.com",
+  "media-src 'self' data: blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'"
+].join("; ");
+
+export function applySecurityHeaders(res, reqId) {
   if (!res || !res.setHeader) return;
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("Content-Security-Policy", CSP_POLICY);
+
+  if (reqId) {
+    res.setHeader("X-Request-ID", reqId);
+  }
 }
 
-export function sendJsonResponse(res, statusCode, data) {
-  applySecurityHeaders(res);
+export function applyCacheHeaders(res, isStatic = false) {
+  if (!res || !res.setHeader) return;
+  if (isStatic) {
+    res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=3600");
+  } else {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+  }
+}
+
+export function sendJsonResponse(res, statusCode, data, reqId, isStatic = false) {
+  applySecurityHeaders(res, reqId);
+  applyCacheHeaders(res, isStatic);
   res.statusCode = statusCode;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(JSON.stringify(data));
 }
 
-export async function parseRequestBody(req) {
-  if (req.body) {
-    if (typeof req.body === "string") {
-      try {
-        return JSON.parse(req.body);
-      } catch {
-        return null;
-      }
-    }
-    return req.body;
-  }
-  return new Promise((resolve) => {
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk;
-      if (body.length > 500000) {
-        req.destroy();
-        resolve(null);
-      }
-    });
-    req.on("end", () => {
-      if (!body.trim()) return resolve({});
-      try {
-        resolve(JSON.parse(body));
-      } catch {
-        resolve(null);
-      }
-    });
-    req.on("error", () => resolve(null));
-  });
-}
+// ==========================================
+// 3. CLIENT IP & DUAL RATE LIMITING
+// ==========================================
 
-// ==========================================
-// 2. IN-MEMORY RATE LIMITING
-// ==========================================
+export function getClientIp(req) {
+  if (!req) return "127.0.0.1";
+  const forwarded = req.headers?.["x-forwarded-for"];
+  if (typeof forwarded === "string" && forwarded.trim()) {
+    // Take first client IP in comma-separated proxy list
+    const firstIp = forwarded.split(",")[0].trim();
+    if (firstIp && firstIp.length <= 45) {
+      return firstIp;
+    }
+  }
+  return req.socket?.remoteAddress || req.connection?.remoteAddress || "127.0.0.1";
+}
 
 const rateLimitBuckets = new Map();
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
-const MAX_REQUESTS_PER_WINDOW = 20;
 
-export function checkRateLimit(identifier) {
-  const key = identifier || "anonymous";
+export function checkRateLimit(key, maxRequests = 20) {
   const now = Date.now();
   let bucket = rateLimitBuckets.get(key);
 
   if (!bucket || now - bucket.startTime > RATE_LIMIT_WINDOW_MS) {
     bucket = { startTime: now, count: 1 };
     rateLimitBuckets.set(key, bucket);
-    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1 };
+    return { allowed: true, remaining: maxRequests - 1 };
   }
 
   bucket.count += 1;
-  if (bucket.count > MAX_REQUESTS_PER_WINDOW) {
+  if (bucket.count > maxRequests) {
     return { allowed: false, remaining: 0 };
   }
 
-  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - bucket.count };
+  return { allowed: true, remaining: maxRequests - bucket.count };
 }
 
-// Periodic cleanup of stale rate-limit buckets (every 15 min)
+/**
+ * Dual rate limiter checking both IP address and session ID
+ * Protects against session ID rotation bypass
+ */
+export function checkDualRateLimit(ip, sessionId) {
+  const ipKey = `ip:${ip || "unknown"}`;
+  const ipCheck = checkRateLimit(ipKey, 30); // 30 requests per 10 min per IP
+  if (!ipCheck.allowed) {
+    return { allowed: false, reason: "ip_limit_exceeded" };
+  }
+
+  if (sessionId) {
+    const sessionKey = `sess:${sessionId}`;
+    const sessionCheck = checkRateLimit(sessionKey, 20); // 20 requests per 10 min per session
+    if (!sessionCheck.allowed) {
+      return { allowed: false, reason: "session_limit_exceeded" };
+    }
+  }
+
+  return { allowed: true };
+}
+
+// Stale rate-limit bucket cleanup timer
 if (typeof setInterval !== "undefined") {
   const cleanupTimer = setInterval(() => {
     const now = Date.now();
@@ -97,126 +151,173 @@ if (typeof setInterval !== "undefined") {
         rateLimitBuckets.delete(key);
       }
     }
-  }, 15 * 60 * 1000);
+  }, 10 * 60 * 1000);
   if (cleanupTimer && cleanupTimer.unref) {
     cleanupTimer.unref();
   }
 }
 
 // ==========================================
-// 3. DETERMINISTIC XP & LEVEL CONFIGURATION
+// 4. REQUEST BODY PARSING & LIMITS (32 KB)
 // ==========================================
 
-export const XP_REWARDS = {
-  "visit-profile": 10,
-  "visit-skills": 10,
-  "open-project": 15,
-  "visit-experience": 10,
-  "open-inventory": 15,
-  "open-radio": 10,
-  "open-terminal": 20,
-  "discover-secret": 25,
-  "unlock-achievement": 30,
-  "discover-frequency": 25,
-  "unlock-violet": 100
-};
+const MAX_BODY_BYTES = 32 * 1024; // 32 KB limit
 
-export const LEVEL_THRESHOLDS = [
-  { level: 1, minXp: 0 },
-  { level: 2, minXp: 100 },
-  { level: 3, minXp: 250 },
-  { level: 4, minXp: 500 },
-  { level: 5, minXp: 850 },
-  { level: 6, minXp: 1300 },
-  { level: 7, minXp: 1850 },
-  { level: 8, minXp: 2500 },
-  { level: 9, minXp: 3250 },
-  { level: 10, minXp: 4100 }
-];
+export function validateJsonContentType(req) {
+  const contentType = req.headers?.["content-type"] || "";
+  return contentType.toLowerCase().includes("application/json");
+}
 
-export function calculateLevelFromXp(xp = 0) {
-  const safeXp = Math.max(0, Number(xp) || 0);
-  let currentLevel = 1;
-  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
-    if (safeXp >= LEVEL_THRESHOLDS[i].minXp) {
-      currentLevel = LEVEL_THRESHOLDS[i].level;
-      break;
+export async function parseRequestBody(req) {
+  // Early Content-Length check
+  const contentLength = req.headers?.["content-length"];
+  if (contentLength && parseInt(contentLength, 10) > MAX_BODY_BYTES) {
+    if (typeof req.resume === "function") req.resume();
+    return { error: "PAYLOAD_TOO_LARGE", statusCode: 413 };
+  }
+
+  // Pre-parsed body (Vercel serverless / Express)
+  if (req.body !== undefined && req.body !== null) {
+    if (typeof req.body === "string") {
+      if (req.body.length > MAX_BODY_BYTES) {
+        return { error: "PAYLOAD_TOO_LARGE", statusCode: 413 };
+      }
+      try {
+        return { data: JSON.parse(req.body) };
+      } catch {
+        return { error: "INVALID_JSON", statusCode: 400 };
+      }
+    }
+    if (typeof req.body === "object") {
+      return { data: req.body };
     }
   }
-  return currentLevel;
+
+  // Native Node.js stream body parsing with strict 32 KB byte cap
+  return new Promise((resolve) => {
+    let raw = "";
+    let byteCount = 0;
+    let exceeded = false;
+
+    req.on("data", (chunk) => {
+      if (exceeded) return;
+      byteCount += chunk.length;
+      if (byteCount > MAX_BODY_BYTES) {
+        exceeded = true;
+        if (typeof req.resume === "function") req.resume();
+        resolve({ error: "PAYLOAD_TOO_LARGE", statusCode: 413 });
+        return;
+      }
+      raw += chunk;
+    });
+
+    req.on("end", () => {
+      if (exceeded) return;
+      if (!raw.trim()) {
+        resolve({ data: {} });
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        resolve({ data: parsed });
+      } catch {
+        resolve({ error: "INVALID_JSON", statusCode: 400 });
+      }
+    });
+
+    req.on("error", () => {
+      resolve({ error: "REQUEST_ABORTED", statusCode: 400 });
+    });
+  });
 }
 
-export function getProgressToNextLevel(xp = 0) {
-  const safeXp = Math.max(0, Number(xp) || 0);
-  const currentLevel = calculateLevelFromXp(safeXp);
-  const currentThreshold = LEVEL_THRESHOLDS.find(t => t.level === currentLevel) || LEVEL_THRESHOLDS[0];
-  const nextThreshold = LEVEL_THRESHOLDS.find(t => t.level === currentLevel + 1);
+// ==========================================
+// 5. SESSION VALIDATION & RUNTIME CACHE
+// ==========================================
 
-  if (!nextThreshold) {
-    return { currentLevel, currentXp: safeXp, nextLevelXp: safeXp, progressPercent: 100 };
-  }
-
-  const range = nextThreshold.minXp - currentThreshold.minXp;
-  const gained = safeXp - currentThreshold.minXp;
-  const percent = Math.min(100, Math.max(0, Math.round((gained / range) * 100)));
-
-  return {
-    currentLevel,
-    currentXp: safeXp,
-    nextLevelXp: nextThreshold.minXp,
-    progressPercent: percent
-  };
+export function isValidSessionId(sessionId) {
+  if (!sessionId || typeof sessionId !== "string") return false;
+  if (sessionId.length !== 36) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sessionId);
 }
 
-// In-memory anonymous session game state
+// In-memory runtime session cache (NOT a persistent database; localStorage is authoritative)
 const serverGameSessions = new Map();
+const SESSION_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+const MAX_SESSIONS_CAP = 2000;
+
+function cleanupOldSessions() {
+  const now = Date.now();
+  for (const [id, s] of serverGameSessions.entries()) {
+    if (now - s.lastAccessed > SESSION_TTL_MS) {
+      serverGameSessions.delete(id);
+    }
+  }
+}
+
+if (typeof setInterval !== "undefined") {
+  const sessionCleaner = setInterval(cleanupOldSessions, 30 * 60 * 1000);
+  if (sessionCleaner && sessionCleaner.unref) {
+    sessionCleaner.unref();
+  }
+}
 
 export function getServerGameState(sessionId) {
-  if (!sessionId || typeof sessionId !== "string") {
-    return {
-      version: 2,
-      xp: 0,
-      level: 1,
-      completedActions: {}
-    };
+  if (!isValidSessionId(sessionId)) {
+    return null;
   }
 
-  if (!serverGameSessions.has(sessionId)) {
-    serverGameSessions.set(sessionId, {
+  let session = serverGameSessions.get(sessionId);
+  if (!session) {
+    if (serverGameSessions.size >= MAX_SESSIONS_CAP) {
+      cleanupOldSessions();
+    }
+    session = {
       sessionId,
       version: 2,
       xp: 0,
       level: 1,
       completedActions: {},
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
+      updatedAt: new Date().toISOString(),
+      lastAccessed: Date.now()
+    };
+    serverGameSessions.set(sessionId, session);
+  } else {
+    session.lastAccessed = Date.now();
   }
 
-  return serverGameSessions.get(sessionId);
+  // Ensure XP and level are derived authoritatively from validated completedActions
+  session.xp = calculateTotalXpFromActions(session.completedActions);
+  session.level = calculateLevel(session.xp);
+
+  return session;
 }
 
 export function recordGameProgress(sessionId, action) {
-  if (!sessionId || typeof sessionId !== "string" || sessionId.length > 128) {
+  if (!isValidSessionId(sessionId)) {
     return {
       success: false,
-      error: { code: "INVALID_SESSION", message: "A valid anonymous session ID is required." }
+      statusCode: 400,
+      error: { code: "INVALID_SESSION", message: "A valid UUID session ID is required." }
     };
   }
 
-  if (!action || typeof action !== "string" || !(action in XP_REWARDS)) {
+  if (!action || typeof action !== "string" || !Object.prototype.hasOwnProperty.call(XP_ACTIONS, action)) {
     return {
       success: false,
-      error: { code: "INVALID_ACTION", message: `Action '${action}' is not recognized.` }
+      statusCode: 400,
+      error: { code: "INVALID_ACTION", message: `Action '${action}' is not a recognized canonical action.` }
     };
   }
 
   const session = getServerGameState(sessionId);
 
-  // Check action deduplication
+  // Deduplication check
   if (session.completedActions[action]) {
     return {
       success: true,
+      statusCode: 200,
       data: {
         awarded: 0,
         reason: "already_completed",
@@ -227,15 +328,16 @@ export function recordGameProgress(sessionId, action) {
     };
   }
 
-  // Award reward deterministically
-  const award = XP_REWARDS[action];
+  // Record action timestamp and calculate authoritative reward
+  const award = XP_ACTIONS[action];
   session.completedActions[action] = new Date().toISOString();
-  session.xp += award;
-  session.level = calculateLevelFromXp(session.xp);
+  session.xp = calculateTotalXpFromActions(session.completedActions);
+  session.level = calculateLevel(session.xp);
   session.updatedAt = new Date().toISOString();
 
   return {
     success: true,
+    statusCode: 200,
     data: {
       awarded: award,
       reason: "action_completed",
@@ -247,7 +349,7 @@ export function recordGameProgress(sessionId, action) {
 }
 
 // ==========================================
-// 4. CANONICAL PORTFOLIO DATA CONTROLLERS
+// 6. CANONICAL PORTFOLIO DATA CONTROLLERS
 // ==========================================
 
 export function getHealthData() {
@@ -290,45 +392,86 @@ export function getExperienceData() {
 }
 
 // ==========================================
-// 5. CHIBI COMPANION AI BACKEND
+// 7. AI COMPANION KNOWLEDGE BASE & SERVICE
 // ==========================================
 
-function buildSystemPrompt() {
-  return `You are SV-01, the interactive tactical digital companion for Shreyas Vaid's developer portfolio.
-Your role: Answer visitor queries concisely, professionally, and warmly.
+/**
+ * Builds verified factual knowledge context directly from canonical repository data.
+ * Zero hardcoded duplication.
+ */
+export function buildKnowledgeContext() {
+  const edu = profileData.identityDetails?.education || {};
+  const skillsSummary = abilityCategories
+    .map((c) => `${c.title}: ${c.skills.map((s) => s.name).join(", ")}`)
+    .join("\n");
 
-STRICT KNOWLEDGE AND FACTUALITY RULES:
-1. Shreyas Vaid is an Undergraduate Computer Science Engineering student at Chandigarh University (Expected May 2028, CGPA 7.02).
-2. Professional Experience:
-   - Data Analyst Intern at ThinkNEXT Technologies (Mohali, India, May 2026 – June 2026, 45 days).
-   - Awarded "Intern of the Month" at ThinkNEXT Technologies (June 2026).
-3. Technical Skills:
-   - Languages: Python, Java, C++, C, JavaScript, SQL.
-   - Frameworks & Analytics: Flask, Streamlit, Pandas, NumPy, React, Vite.
-   - Tools & Systems: Git, GitHub, VS Code, Linux / Ubuntu, Vercel.
-   - Core CS: Data Structures & Algorithms, OOP, DBMS, Operating Systems, Computer Networks.
-4. Certifications:
-   - Google Data Analytics Professional Certificate (Coursera).
-   - IBM Data Science Specialization (Coursera).
-5. Personal Profile:
-   - Music: ${JSON.stringify(personalProfile.music)}
-   - Favorite foods & beverages: ${JSON.stringify(personalProfile.food)}
-   - Hobbies: ${JSON.stringify(personalProfile.hobbies)}
-   - Personality: ${JSON.stringify(personalProfile.personality)}
-   - Fun Facts: ${JSON.stringify(personalProfile.funFacts)}
-   - Goals: ${JSON.stringify(personalProfile.goals)}
-   - Life outside coding: ${JSON.stringify(personalProfile.lifeOutsideCoding)}
+  const projectsSummary = questProjects
+    .map((p) => `[${p.questCode}] ${p.title} (${p.subtitle}): ${p.technologies.join(", ")}`)
+    .join("\n");
 
-CRITICAL ANTI-HALLUCINATION INSTRUCTIONS:
-- ONLY state facts listed above.
-- If asked about personal topics not explicitly documented above (e.g. unlisted food, relationships, unlisted hobbies, private opinions), you MUST respond naturally: "I don't have that information about Shreyas yet."
-- NEVER invent or speculate on personal habits, qualifications, or credentials.
-- If asked unrelated general knowledge questions, politely redirect the visitor toward Shreyas's portfolio and projects.
-- Keep your answers concise: 1 to 3 short paragraphs maximum.`;
+  const experienceSummary = missionHistory
+    .map((m) => `${m.role} at ${m.organization} (${m.period}): ${m.description}`)
+    .join("\n");
+
+  return `
+[PROFESSIONAL IDENTITY]
+- Candidate: ${profileData.name}
+- Title / Role: ${profileData.title} // ${profileData.role}
+- Degree: ${edu.degree || "Bachelor of Engineering (Computer Science)"}
+- Institution: ${edu.institution || "Chandigarh University"}
+- Timeline & Performance: ${edu.year || "Expected May 2028 · CGPA 7.02"}
+
+[VERIFIED EXPERIENCE & INTERNSHIP]
+${experienceSummary}
+
+[TECHNICAL SKILLS]
+${skillsSummary}
+
+[VERIFIED QUEST PROJECTS]
+${projectsSummary}
+
+[PERSONAL PROFILE (FACTUAL TRIVIA ONLY)]
+- Interests: ${personalProfile.interests?.join("; ") || "None indexed"}
+- Goals: ${personalProfile.goals?.join("; ") || "None indexed"}
+- Verified Facts: ${personalProfile.funFacts?.join("; ") || "None indexed"}
+- Music Preferences: ${personalProfile.music && personalProfile.music.length ? personalProfile.music.join("; ") : "UNINDEXED"}
+- Food / Dining Preferences: ${personalProfile.food && personalProfile.food.length ? personalProfile.food.join("; ") : "UNINDEXED"}
+- Personal Hobbies: ${personalProfile.hobbies && personalProfile.hobbies.length ? personalProfile.hobbies.join("; ") : "UNINDEXED"}
+- Personality: ${personalProfile.personality && personalProfile.personality.length ? personalProfile.personality.join("; ") : "UNINDEXED"}
+`.trim();
 }
 
-export async function processChatRequest({ message, sessionId, clientIp }) {
-  // Input Validation
+function buildSystemPrompt() {
+  const context = buildKnowledgeContext();
+  return `### SYSTEM DIRECTIVES
+You are SV-01, the interactive tactical digital companion for Shreyas Vaid's developer portfolio.
+Your role: Answer visitor queries concisely, professionally, and accurately.
+
+CRITICAL ANTI-HALLUCINATION RULES:
+1. ONLY state verified facts explicitly provided in the VERIFIED KNOWLEDGE BASE below.
+2. If asked about personal topics (music, food, hobbies, relationships, private opinions) listed as "UNINDEXED" or omitted, you MUST respond: "I don't have that information about Shreyas yet."
+3. NEVER invent or speculate on credentials, personal habits, or private life.
+4. Keep answers concise: 1 to 3 short paragraphs maximum.
+5. If the query is unrelated to Shreyas's engineering, data analytics, or portfolio, politely redirect the visitor back to the portfolio.
+
+### VERIFIED KNOWLEDGE BASE
+${context}
+`;
+}
+
+export async function processChatRequest({ message, sessionId, clientIp, reqId }) {
+  // 1. Session ID validation
+  if (!isValidSessionId(sessionId)) {
+    return {
+      statusCode: 400,
+      body: {
+        success: false,
+        error: { code: "INVALID_SESSION", message: "A valid UUID session ID is required." }
+      }
+    };
+  }
+
+  // 2. Input validation
   if (!message || typeof message !== "string") {
     return {
       statusCode: 400,
@@ -360,10 +503,10 @@ export async function processChatRequest({ message, sessionId, clientIp }) {
     };
   }
 
-  // Rate Limiting
-  const rateLimitId = sessionId || clientIp || "global";
-  const limitCheck = checkRateLimit(rateLimitId);
-  if (!limitCheck.allowed) {
+  // 3. Dual Rate Limiting (IP + Session)
+  const rateLimitCheck = checkDualRateLimit(clientIp, sessionId);
+  if (!rateLimitCheck.allowed) {
+    logEvent(reqId, "RATE_LIMIT_EXCEEDED", `IP: ${clientIp}, Session: ${sessionId}`);
     return {
       statusCode: 429,
       body: {
@@ -379,7 +522,7 @@ export async function processChatRequest({ message, sessionId, clientIp }) {
   const apiKey = process.env.AI_API_KEY || process.env.GEMINI_API_KEY;
   const modelName = process.env.AI_MODEL || "gemini-1.5-flash";
 
-  // If AI API key is configured, invoke AI provider
+  // 4. Invoke AI Provider if configured with 10s hard timeout
   if (apiKey) {
     try {
       const response = await fetch(
@@ -392,7 +535,9 @@ export async function processChatRequest({ message, sessionId, clientIp }) {
               {
                 role: "user",
                 parts: [
-                  { text: `${buildSystemPrompt()}\n\nVisitor Query: ${cleanMessage}` }
+                  {
+                    text: `${buildSystemPrompt()}\n\n### VISITOR QUERY\n${cleanMessage}`
+                  }
                 ]
               }
             ],
@@ -407,61 +552,72 @@ export async function processChatRequest({ message, sessionId, clientIp }) {
 
       if (response.ok) {
         const result = await response.json();
-        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
+        const rawText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+        // AI Response Validation
+        if (typeof rawText === "string" && rawText.trim().length > 0 && rawText.length <= 2000) {
           return {
             statusCode: 200,
             body: {
               success: true,
               data: {
-                message: text.trim(),
+                message: rawText.trim(),
                 pose: "FRONT",
                 timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
               }
             }
           };
         }
+      } else {
+        logEvent(reqId, "AI_PROVIDER_HTTP_ERROR", `Status: ${response.status}`);
       }
     } catch (apiErr) {
-      console.error("[SV-01 Chat Service Error]:", apiErr?.message || "Provider call failed");
-      // Fall through to deterministic verified knowledge engine
+      logEvent(reqId, "AI_PROVIDER_EXCEPTION", apiErr?.message || "Timeout / connection error");
     }
   }
 
-  // Factual deterministic fallback engine (strict anti-hallucination)
+  // 5. Deterministic Factual Knowledge Fallback
   const queryLower = cleanMessage.toLowerCase();
   const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
   let text = "";
   let pose = "FRONT";
 
   if (/^(hi|hello|hey|yo|greetings|who are you|status)/i.test(queryLower)) {
     text = "Hey there! I'm SV-01, Shreyas's interactive AI companion. Ask me about his projects, data analytics background, technical stack, or his background at Chandigarh University!";
   } else if (/education|college|university|cgpa|degree|study|chandigarh/i.test(queryLower)) {
-    text = `🎓 **EDUCATION & ACADEMICS**\n• **Degree**: Bachelor of Engineering in Computer Science Engineering\n• **Institution**: Chandigarh University\n• **Graduation**: Expected May 2028\n• **Academic Performance**: CGPA 7.02`;
+    text = `🎓 **EDUCATION & ACADEMICS**\n• **Degree**: Bachelor of Engineering (Computer Science)\n• **Institution**: Chandigarh University\n• **Graduation**: Expected May 2028\n• **Academic Performance**: CGPA 7.02`;
     pose = "FOCUSED";
   } else if (/intern|thinknext|experience|work|job/i.test(queryLower)) {
     text = `💼 **DATA ANALYST INTERNSHIP // THINKNEXT TECHNOLOGIES**\n• **Role**: Data Analyst Intern\n• **Duration**: 45 Days (May 2026 — June 2026)\n• **Honor**: Intern of the Month (June 2026)\n• **Focus**: Exploratory data analysis, multi-variate dataset cleaning, and SQL reporting pipelines.`;
     pose = "FOCUSED";
   } else if (/skill|tech|stack|python|sql|java|c\+\+|tools|framework/i.test(queryLower)) {
-    const list = abilityCategories.map(c => `• **${c.title}**: ${c.skills.map(s => s.name).join(", ")}`).join("\n");
+    const list = abilityCategories.map((c) => `• **${c.title}**: ${c.skills.map((s) => s.name).join(", ")}`).join("\n");
     text = `💻 **TECHNICAL SKILLS MATRIX**\n${list}\n\nCore Languages: Python, Java, C++, C, JavaScript, SQL.`;
     pose = "FOCUSED";
   } else if (/project|quest|build|portfolio/i.test(queryLower)) {
-    const pList = questProjects.map(p => `• **${p.title}**: ${p.subtitle}`).join("\n");
+    const pList = questProjects.map((p) => `• **${p.title}**: ${p.subtitle}`).join("\n");
     text = `⚔️ **FEATURED PROJECTS**\n${pList}\n\nClick any project card on the page to inspect its tactical dossier!`;
     pose = "FOCUSED";
   } else if (/certif|coursera|google data|ibm/i.test(queryLower)) {
     text = `📜 **VERIFIED CERTIFICATIONS**\n• **Google Data Analytics Professional Certificate** (Coursera)\n• **IBM Data Science Specialization** (Coursera)\nComprehensive training covering SQL, Python, Tableau, and Exploratory Data Analysis.`;
     pose = "FOCUSED";
   } else if (/music|playlist|song|listen/i.test(queryLower)) {
-    text = `🎵 **MUSIC TASTE**\n${personalProfile.music.join("\n")}`;
+    text = personalProfile.music && personalProfile.music.length
+      ? `🎵 **MUSIC TASTE**\n${personalProfile.music.join("\n")}`
+      : "I don't have that information about Shreyas yet.";
   } else if (/food|dish|snack|drink|coffee/i.test(queryLower)) {
-    text = `🍜 **FOOD & FUEL**\n${personalProfile.food.join("\n")}`;
+    text = personalProfile.food && personalProfile.food.length
+      ? `🍜 **FOOD & FUEL**\n${personalProfile.food.join("\n")}`
+      : "I don't have that information about Shreyas yet.";
   } else if (/hobby|hobbies|free time|outside coding|games/i.test(queryLower)) {
-    text = `🎮 **LIFE OUTSIDE THE TERMINAL**\n${personalProfile.hobbies.map(h => `• ${h}`).join("\n")}`;
+    text = personalProfile.hobbies && personalProfile.hobbies.length
+      ? `🎮 **LIFE OUTSIDE THE TERMINAL**\n${personalProfile.hobbies.map((h) => `• ${h}`).join("\n")}`
+      : "I don't have that information about Shreyas yet.";
+  } else if (/personality|vibe|character/i.test(queryLower)) {
+    text = personalProfile.personality && personalProfile.personality.length
+      ? `🧠 **PERSONALITY**\n${personalProfile.personality.map((p) => `• ${p}`).join("\n")}`
+      : "I don't have that information about Shreyas yet.";
   } else if (/fun fact|trivia|easter egg|secret/i.test(queryLower)) {
-    text = `★ **CLASSIFIED TRIVIA**\n${personalProfile.funFacts.map(f => `• ${f}`).join("\n")}`;
+    text = `★ **CLASSIFIED TRIVIA**\n${personalProfile.funFacts.map((f) => `• ${f}`).join("\n")}`;
   } else if (/contact|email|reach|hire|linkedin|github/i.test(queryLower)) {
     text = `📡 **CONTACT CHANNELS**\n• **Email**: shreyasvaid.dev@gmail.com\n• **GitHub**: github.com/shreyas-vaid\n• **LinkedIn**: linkedin.com/in/shreyas-vaid`;
   } else {
@@ -481,3 +637,11 @@ export async function processChatRequest({ message, sessionId, clientIp }) {
     }
   };
 }
+
+export {
+  XP_ACTIONS,
+  LEVEL_THRESHOLDS,
+  calculateLevel,
+  getProgressToNextLevel,
+  calculateTotalXpFromActions
+};
