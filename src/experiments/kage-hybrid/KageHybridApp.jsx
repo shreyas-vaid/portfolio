@@ -1,51 +1,42 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
-import "./App.css";
-import "./experiments/kage-hybrid/kageHybrid.css";
+import { ArrowLeft, Compass } from "lucide-react";
+import "../../App.css";
+import "./kageHybrid.css";
 
-// Kage 60/40 Hybrid Experiment
-import KageHybridApp from "./experiments/kage-hybrid/KageHybridApp";
+// 40% Kage Layer Component
+import KageBackground from "./KageBackground";
 
-// Components
-import BootScreen from "./components/BootScreen";
-import CustomCursor from "./components/CustomCursor";
-import HUDDecoration from "./components/HUDDecoration";
-import Navbar from "./components/Navbar";
-import InteractiveCharacter from "./components/InteractiveCharacter/InteractiveCharacter";
-import Footer from "./components/Footer";
+// 60% Existing Portfolio Components (Unchanged Core Foundation)
+import BootScreen from "../../components/BootScreen";
+import CustomCursor from "../../components/CustomCursor";
+import HUDDecoration from "../../components/HUDDecoration";
+import Navbar from "../../components/Navbar";
+import InteractiveCharacter from "../../components/InteractiveCharacter/InteractiveCharacter";
+import Footer from "../../components/Footer";
 
-// Game Layer Components
-import InventoryModal from "./components/Inventory/InventoryModal";
-import RadioModal from "./components/Radio/RadioModal";
-import TerminalModal from "./components/Terminal/TerminalModal";
-import AchievementsModal from "./components/Achievements/AchievementsModal";
-import SecretThemeBanner from "./components/ThemeOverride/SecretThemeBanner";
+// Existing Game Layer Components & Modals
+import InventoryModal from "../../components/Inventory/InventoryModal";
+import RadioModal from "../../components/Radio/RadioModal";
+import TerminalModal from "../../components/Terminal/TerminalModal";
+import AchievementsModal from "../../components/Achievements/AchievementsModal";
+import SecretThemeBanner from "../../components/ThemeOverride/SecretThemeBanner";
 
 // Game State Engine
-import { gameState } from "./utils/gameState";
+import { gameState } from "../../utils/gameState";
 
-// Sections
-import Hero from "./sections/Hero";
-import Identity from "./sections/Identity";
-import Abilities from "./sections/Abilities";
-import Quests from "./sections/Quests";
-import Experience from "./sections/Experience";
-import Achievements from "./sections/Achievements";
-import Contact from "./sections/Contact";
+// Existing Sections
+import Hero from "../../sections/Hero";
+import Identity from "../../sections/Identity";
+import Abilities from "../../sections/Abilities";
+import Quests from "../../sections/Quests";
+import Experience from "../../sections/Experience";
+import Achievements from "../../sections/Achievements";
+import Contact from "../../sections/Contact";
 
 const SECTIONS = ["hero", "identity", "abilities", "quests", "experience", "achievements", "contact"];
 
-function App() {
-  // Feature flag / isolated route detection
-  const [isKageRoute, setIsKageRoute] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return (
-      window.location.pathname.startsWith("/kage-test") ||
-      window.location.search.includes("kage=true") ||
-      import.meta.env.VITE_KAGE_EXPERIMENT === "true"
-    );
-  });
-
+export default function KageHybridApp({ onExitExperiment }) {
   const [bootComplete, setBootComplete] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
 
@@ -56,31 +47,6 @@ function App() {
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [isThemeBannerOpen, setIsThemeBannerOpen] = useState(false);
 
-  // Listen to popstate for navigation between / and /kage-test
-  useEffect(() => {
-    const checkRoute = () => {
-      setIsKageRoute(
-        window.location.pathname.startsWith("/kage-test") ||
-        window.location.search.includes("kage=true") ||
-        import.meta.env.VITE_KAGE_EXPERIMENT === "true"
-      );
-    };
-
-    window.addEventListener("popstate", checkRoute);
-    return () => window.removeEventListener("popstate", checkRoute);
-  }, []);
-
-  const navigateToKage = (e) => {
-    e?.preventDefault();
-    window.history.pushState({}, "", "/kage-test");
-    setIsKageRoute(true);
-  };
-
-  const navigateToStandard = () => {
-    window.history.pushState({}, "", "/");
-    setIsKageRoute(false);
-  };
-
   // Initialize theme from saved state
   useEffect(() => {
     gameState.setTheme(gameState.state.activeTheme || "red");
@@ -88,7 +54,6 @@ function App() {
 
   // Track active section for navbar highlighting
   useEffect(() => {
-    if (isKageRoute) return;
     const handleScroll = () => {
       const scrollPos = window.scrollY + 200;
       for (let i = SECTIONS.length - 1; i >= 0; i--) {
@@ -102,17 +67,37 @@ function App() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isKageRoute]);
+  }, []);
 
-  // If on /kage-test, render the isolated 60/40 Hybrid experiment
-  if (isKageRoute) {
-    return <KageHybridApp onExitExperiment={navigateToStandard} />;
-  }
-
-  // Otherwise render the 100% UNCHANGED original portfolio
   return (
-    <div className="app-root">
-      {/* Boot Experience */}
+    <div className="app-root kage-hybrid-root">
+      {/* Kage Experiment Safety & Telemetry Top Banner */}
+      <aside className="kage-experiment-top-banner">
+        <div className="kage-banner-left">
+          <span>⛩️ [ EXPERIMENTAL 60/40 HYBRID: SHREYAS VAID × 什雷亚斯 ]</span>
+          <span className="hide-mobile" style={{ opacity: 0.8 }}>// ROUTE: /kage-test</span>
+        </div>
+        <div className="kage-banner-right">
+          <a
+            href="/"
+            onClick={(e) => {
+              if (onExitExperiment) {
+                e.preventDefault();
+                onExitExperiment();
+              }
+            }}
+            className="kage-banner-btn"
+          >
+            <ArrowLeft size={12} />
+            <span>[ RETURN TO STANDARD PORTFOLIO ]</span>
+          </a>
+        </div>
+      </aside>
+
+      {/* 40% Kage Three.js WebGL & Atmospheric Mist Layer with 什雷亚斯 Identity */}
+      <KageBackground activeSection={activeSection} />
+
+      {/* 60% Existing Portfolio: Boot Experience */}
       <AnimatePresence>
         {!bootComplete && (
           <BootScreen onComplete={() => setBootComplete(true)} />
@@ -148,14 +133,27 @@ function App() {
       {/* Interactive Chibi Character Companion (SV-01) */}
       <InteractiveCharacter activeSection={activeSection} />
 
-      {/* Main Tactical Layout */}
-      <main className="main-content-layout">
+      {/* Main Tactical Layout: 60% Existing Portfolio UI */}
+      <main className="main-content-layout" style={{ position: "relative", zIndex: 10 }}>
+        {/* HERO */}
         <Hero />
+
+        {/* IDENTITY */}
         <Identity />
+
+        {/* ABILITIES / SKILLFORGE (100% Unaltered RPG System) */}
         <Abilities />
+
+        {/* QUESTS / PROJECTS */}
         <Quests />
+
+        {/* EXPERIENCE */}
         <Experience />
+
+        {/* ACHIEVEMENTS */}
         <Achievements />
+
+        {/* CONTACT */}
         <Contact />
       </main>
 
@@ -181,21 +179,8 @@ function App() {
         onClose={() => setIsAchievementsOpen(false)}
       />
 
-      {/* Safe Local Switcher Pill to explore 60/40 Kage Hybrid */}
-      <a
-        href="/kage-test"
-        onClick={navigateToKage}
-        className="kage-switch-pill"
-        data-cursor="EXPERIMENT"
-        title="Explore Local-Only 60/40 Kage Hybrid (什雷亚斯)"
-      >
-        <span>⛩️ 什雷亚斯 // 60/40 HYBRID</span>
-      </a>
-
       {/* Cyber Editorial Minimal Footer */}
       <Footer />
     </div>
   );
 }
-
-export default App;

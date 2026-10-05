@@ -1,0 +1,456 @@
+/* kageHybrid.css — 60/40 Hybrid: Existing Portfolio Foundation × Kage ThreeUI Aesthetic */
+
+:root {
+  --kage-bg-void: #070709;
+  --kage-bg-card: rgba(14, 14, 18, 0.72);
+  --kage-bg-panel: rgba(20, 20, 26, 0.85);
+  
+  --kage-vermilion: #e0231c;
+  --kage-vermilion-bright: #ff3344;
+  --kage-vermilion-glow: rgba(224, 35, 28, 0.4);
+  --kage-vermilion-subtle: rgba(224, 35, 28, 0.12);
+  
+  --kage-gold: #e5c07b;
+  --kage-gold-subtle: rgba(229, 192, 123, 0.15);
+  --kage-mist: rgba(180, 190, 210, 0.08);
+  --kage-border: rgba(224, 35, 28, 0.25);
+  --kage-border-subtle: rgba(255, 255, 255, 0.07);
+}
+
+/* Atmospheric 3D Layers */
+.kage-backdrop-wrapper {
+  background: radial-gradient(circle at 50% 20%, #151013 0%, #070709 75%);
+}
+
+.kage-atmosphere-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 15%, rgba(224, 35, 28, 0.08) 0%, transparent 65%);
+  z-index: 1;
+}
+
+.kage-mist-layer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50vh;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(7, 7, 9, 0.95) 0%, rgba(7, 7, 9, 0.4) 50%, transparent 100%);
+  z-index: 2;
+}
+
+.kage-vignette-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+  z-index: 3;
+}
+
+.kage-fallback-sky {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #09090d 0%, #12090b 50%, #070709 100%);
+}
+
+/* Kage Hybrid Mode Banner & Route Indicator */
+.kage-experiment-top-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 32px;
+  background: linear-gradient(90deg, #7a000f, #e0231c, #940a16);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  z-index: 10000;
+  box-shadow: 0 2px 10px rgba(224, 35, 28, 0.4);
+}
+
+.kage-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kage-banner-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kage-banner-btn {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  padding: 2px 10px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.7rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.kage-banner-btn:hover {
+  background: #ffffff;
+  color: #940a16;
+}
+
+/* Offset standard layout for experiment banner */
+.kage-hybrid-root {
+  padding-top: 32px;
+  min-height: 100vh;
+  position: relative;
+  background-color: var(--kage-bg-void);
+  color: #f5f5f5;
+  overflow-x: hidden;
+}
+
+/* Floating Kage HUD Controls (Top Right) */
+.kage-hud-controls {
+  position: fixed;
+  top: 44px;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 999;
+}
+
+.kage-hud-btn {
+  background: rgba(14, 14, 18, 0.85);
+  border: 1px solid var(--kage-border);
+  backdrop-filter: blur(8px);
+  color: #e0e0e0;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+  transition: all 0.2s ease;
+}
+
+.kage-hud-btn:hover {
+  border-color: var(--kage-vermilion-bright);
+  color: #fff;
+  background: rgba(224, 35, 28, 0.15);
+  box-shadow: 0 0 12px var(--kage-vermilion-glow);
+}
+
+.kage-hud-btn-primary {
+  background: rgba(224, 35, 28, 0.2);
+  border-color: var(--kage-vermilion);
+  color: #fff;
+}
+
+/* Large Cinematic Environmental Name Identity: 什雷亚斯 */
+.kage-cinematic-name-backdrop {
+  position: absolute;
+  top: 15vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+  user-select: none;
+  opacity: 0.85;
+  transition: opacity 0.5s ease;
+}
+
+.kage-cinematic-name-text {
+  font-family: "Onest", "Cinzel", "Noto Serif JP", serif;
+  font-size: clamp(5.5rem, 16vw, 13.5rem);
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-indent: 0.18em; /* compensate for letter-spacing on center */
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(224, 35, 28, 0.28) 45%,
+    rgba(148, 10, 22, 0.08) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 60px rgba(224, 35, 28, 0.25);
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9));
+  animation: shreyas-breathe 8s infinite ease-in-out;
+}
+
+@keyframes shreyas-breathe {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    text-shadow: 0 0 50px rgba(224, 35, 28, 0.2);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.015);
+    text-shadow: 0 0 80px rgba(224, 35, 28, 0.45);
+  }
+}
+
+.kage-cinematic-name-sub {
+  font-family: var(--font-mono, monospace);
+  font-size: clamp(0.65rem, 1.2vw, 0.85rem);
+  letter-spacing: 0.35em;
+  color: rgba(224, 35, 28, 0.6);
+  text-transform: uppercase;
+  margin-top: -0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kage-cinematic-name-sub::before,
+.kage-cinematic-name-sub::after {
+  content: "";
+  display: inline-block;
+  width: 30px;
+  height: 1px;
+  background: rgba(224, 35, 28, 0.4);
+}
+
+/* Calligraphic Shrine Seal on Edge: 什雷亚斯 */
+.kage-vertical-seal {
+  position: fixed;
+  left: 20px;
+  top: 45%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 6px;
+  background: rgba(14, 14, 18, 0.6);
+  border: 1px solid rgba(224, 35, 28, 0.35);
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  z-index: 99;
+  user-select: none;
+}
+
+.seal-char {
+  font-family: "Onest", "Cinzel", "Noto Serif SC", serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--kage-vermilion-bright);
+  line-height: 1.2;
+}
+
+.kage-vertical-seal-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--kage-gold);
+}
+
+/* Stylized Environmental Watermark */
+.kage-section-watermark {
+  position: absolute;
+  top: -1.5rem;
+  right: 1.5rem;
+  font-size: clamp(3.5rem, 8vw, 6.5rem);
+  font-weight: 900;
+  color: rgba(224, 35, 28, 0.04);
+  user-select: none;
+  pointer-events: none;
+  line-height: 1;
+  font-family: "Onest", "Cinzel", "Noto Serif SC", serif;
+  letter-spacing: 0.1em;
+  z-index: 1;
+}
+
+/* Torii Gate Accent Frame for Cards */
+.kage-torii-card {
+  position: relative;
+  background: var(--kage-bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--kage-border-subtle);
+  border-top: 2px solid var(--kage-vermilion);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.kage-torii-card:hover {
+  border-color: var(--kage-vermilion);
+  box-shadow: 0 8px 30px rgba(224, 35, 28, 0.15);
+  transform: translateY(-2px);
+}
+
+.kage-torii-cap {
+  position: absolute;
+  top: -4px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: var(--kage-vermilion-bright);
+  box-shadow: 0 0 8px var(--kage-vermilion-glow);
+}
+
+/* Full Scene Inspection Modal */
+.kage-full-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(16px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.kage-full-modal-window {
+  width: 94vw;
+  max-width: 1400px;
+  height: 88vh;
+  background: #0a0a0e;
+  border: 1px solid var(--kage-vermilion);
+  box-shadow: 0 0 40px rgba(224, 35, 28, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.kage-full-modal-header {
+  height: 52px;
+  background: #111116;
+  border-bottom: 1px solid var(--kage-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+}
+
+.kage-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  font-family: var(--font-display, sans-serif);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+.kage-kanji-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--kage-vermilion);
+  color: #fff;
+  font-weight: 900;
+  font-size: 1rem;
+  border-radius: 2px;
+}
+
+.kage-modal-subtitle {
+  display: block;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
+  color: #999;
+}
+
+.kage-modal-close-btn {
+  background: transparent;
+  border: 1px solid var(--kage-border);
+  color: #f5f5f5;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.kage-modal-close-btn:hover {
+  background: var(--kage-vermilion);
+  color: #fff;
+}
+
+.kage-modal-body {
+  flex: 1;
+  width: 100%;
+  height: calc(100% - 52px);
+  position: relative;
+  overflow: hidden;
+  background: #080808;
+}
+
+/* Floating Switcher Pill on Normal Page */
+.kage-switch-pill {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 9990;
+  background: rgba(14, 14, 18, 0.92);
+  border: 1px solid #ff003c;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  transition: all 0.25s ease;
+}
+
+.kage-switch-pill:hover {
+  background: #ff003c;
+  box-shadow: 0 0 25px rgba(255, 0, 60, 0.5);
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+/* Responsive Overrides */
+@media (max-width: 768px) {
+  .kage-experiment-top-banner {
+    font-size: 0.65rem;
+    padding: 0 0.75rem;
+  }
+  .kage-hud-controls {
+    top: 36px;
+    right: 0.75rem;
+  }
+  .kage-hud-btn {
+    padding: 4px 8px;
+    font-size: 0.62rem;
+  }
+  .kage-full-modal-window {
+    width: 100vw;
+    height: 100vh;
+  }
+  .kage-switch-pill {
+    bottom: 80px; /* clear chibi on mobile */
+    left: 12px;
+    font-size: 0.68rem;
+    padding: 6px 12px;
+  }
+}
