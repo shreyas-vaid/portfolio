@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import "./App.css";
 import "./experiments/kage-hybrid/kageHybrid.css";
@@ -24,7 +24,7 @@ import SecretThemeBanner from "./components/ThemeOverride/SecretThemeBanner";
 // Game State Engine
 import { gameState } from "./utils/gameState";
 
-// Sections
+// Sections (memoized to eliminate waterfall re-renders on scroll / activeSection changes)
 import Hero from "./sections/Hero";
 import Identity from "./sections/Identity";
 import Abilities from "./sections/Abilities";
@@ -33,11 +33,21 @@ import Experience from "./sections/Experience";
 import Achievements from "./sections/Achievements";
 import Contact from "./sections/Contact";
 
+const MemoHero = memo(Hero);
+const MemoIdentity = memo(Identity);
+const MemoAbilities = memo(Abilities);
+const MemoQuests = memo(Quests);
+const MemoExperience = memo(Experience);
+const MemoAchievements = memo(Achievements);
+const MemoContact = memo(Contact);
+const MemoFooter = memo(Footer);
+
 const SECTIONS = ["hero", "identity", "abilities", "quests", "experience", "achievements", "contact"];
 
 function App() {
   const [bootComplete, setBootComplete] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
+  const activeSectionRef = useRef("hero");
 
   // Game Modals State
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
@@ -46,26 +56,55 @@ function App() {
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [isThemeBannerOpen, setIsThemeBannerOpen] = useState(false);
 
+  // Stable event callbacks for memoized HUD & Navbar
+  const handleOpenInventory = useCallback(() => setIsInventoryOpen(true), []);
+  const handleCloseInventory = useCallback(() => setIsInventoryOpen(false), []);
+  const handleOpenRadio = useCallback(() => setIsRadioOpen(true), []);
+  const handleCloseRadio = useCallback(() => setIsRadioOpen(false), []);
+  const handleOpenTerminal = useCallback(() => setIsTerminalOpen(true), []);
+  const handleCloseTerminal = useCallback(() => setIsTerminalOpen(false), []);
+  const handleOpenAchievements = useCallback(() => setIsAchievementsOpen(true), []);
+  const handleCloseAchievements = useCallback(() => setIsAchievementsOpen(false), []);
+  const handleTriggerThemeUnlock = useCallback(() => setIsThemeBannerOpen(true), []);
+  const handleCloseThemeBanner = useCallback(() => setIsThemeBannerOpen(false), []);
+  const handleBootComplete = useCallback(() => setBootComplete(true), []);
+
   // Initialize theme from saved state
   useEffect(() => {
     gameState.setTheme(gameState.state.activeTheme || "red");
   }, []);
 
-  // Track active section for navbar highlighting
+  // High-performance RAF-throttled scroll handler for navbar highlighting
   useEffect(() => {
-    const handleScroll = () => {
+    let rafScrollId = null;
+
+    const checkScroll = () => {
       const scrollPos = window.scrollY + 200;
       for (let i = SECTIONS.length - 1; i >= 0; i--) {
         const el = document.getElementById(SECTIONS[i]);
         if (el && el.offsetTop <= scrollPos) {
-          setActiveSection(SECTIONS[i]);
+          const next = SECTIONS[i];
+          if (next !== activeSectionRef.current) {
+            activeSectionRef.current = next;
+            setActiveSection(next);
+          }
           break;
         }
+      }
+      rafScrollId = null;
+    };
+
+    const handleScroll = () => {
+      if (!rafScrollId) {
+        rafScrollId = requestAnimationFrame(checkScroll);
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafScrollId) cancelAnimationFrame(rafScrollId);
+    };
   }, []);
 
   return (
@@ -76,7 +115,7 @@ function App() {
       {/* Boot Experience */}
       <AnimatePresence>
         {!bootComplete && (
-          <BootScreen onComplete={() => setBootComplete(true)} />
+          <BootScreen onComplete={handleBootComplete} />
         )}
       </AnimatePresence>
 
@@ -86,24 +125,24 @@ function App() {
       {/* Cinematic Secret Theme Unlock Overlay */}
       <SecretThemeBanner
         isOpen={isThemeBannerOpen}
-        onClose={() => setIsThemeBannerOpen(false)}
+        onClose={handleCloseThemeBanner}
       />
 
       {/* HUD Telemetry & Desktop Tactical Quick-Tools Bar */}
       <HUDDecoration
-        onOpenInventory={() => setIsInventoryOpen(true)}
-        onOpenRadio={() => setIsRadioOpen(true)}
-        onOpenTerminal={() => setIsTerminalOpen(true)}
-        onOpenAchievements={() => setIsAchievementsOpen(true)}
+        onOpenInventory={handleOpenInventory}
+        onOpenRadio={handleOpenRadio}
+        onOpenTerminal={handleOpenTerminal}
+        onOpenAchievements={handleOpenAchievements}
       />
 
       {/* JRPG Sticky Navigation Menu & Mobile Drawer */}
       <Navbar
         activeSection={activeSection}
-        onOpenInventory={() => setIsInventoryOpen(true)}
-        onOpenRadio={() => setIsRadioOpen(true)}
-        onOpenTerminal={() => setIsTerminalOpen(true)}
-        onOpenAchievements={() => setIsAchievementsOpen(true)}
+        onOpenInventory={handleOpenInventory}
+        onOpenRadio={handleOpenRadio}
+        onOpenTerminal={handleOpenTerminal}
+        onOpenAchievements={handleOpenAchievements}
       />
 
       {/* Interactive Chibi Character Companion (SV-01) */}
@@ -112,51 +151,51 @@ function App() {
       {/* Main Tactical Layout */}
       <main className="main-content-layout" style={{ position: "relative", zIndex: 10 }}>
         {/* HERO */}
-        <Hero />
+        <MemoHero />
 
         {/* IDENTITY */}
-        <Identity />
+        <MemoIdentity />
 
         {/* ABILITIES / SKILLFORGE */}
-        <Abilities />
+        <MemoAbilities />
 
         {/* QUESTS / PROJECTS */}
-        <Quests />
+        <MemoQuests />
 
         {/* EXPERIENCE */}
-        <Experience />
+        <MemoExperience />
 
         {/* ACHIEVEMENTS */}
-        <Achievements />
+        <MemoAchievements />
 
         {/* CONTACT */}
-        <Contact />
+        <MemoContact />
       </main>
 
       {/* Interactive Modals */}
       <InventoryModal
         isOpen={isInventoryOpen}
-        onClose={() => setIsInventoryOpen(false)}
+        onClose={handleCloseInventory}
       />
 
       <RadioModal
         isOpen={isRadioOpen}
-        onClose={() => setIsRadioOpen(false)}
+        onClose={handleCloseRadio}
       />
 
       <TerminalModal
         isOpen={isTerminalOpen}
-        onClose={() => setIsTerminalOpen(false)}
-        onTriggerThemeUnlock={() => setIsThemeBannerOpen(true)}
+        onClose={handleCloseTerminal}
+        onTriggerThemeUnlock={handleTriggerThemeUnlock}
       />
 
       <AchievementsModal
         isOpen={isAchievementsOpen}
-        onClose={() => setIsAchievementsOpen(false)}
+        onClose={handleCloseAchievements}
       />
 
       {/* Cyber Editorial Minimal Footer */}
-      <Footer />
+      <MemoFooter />
     </div>
   );
 }

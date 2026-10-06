@@ -1,26 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, memo } from "react";
 import { LandingPageFrame } from "../../shaders/landing-pages/LandingPageFrame";
 
 /**
  * KageBackground — The atmospheric 3D Three.js WebGL & mist layer.
  * 
- * Provides:
- * 1. Live Three.js WebGL Kyoto Mountain Temple canvas (#gl) running as ambient background.
- * 2. Atmospheric ember/sakura mist overlay & cinematic vignette.
- * 3. Cinematic environmental identity: 什雷亚斯 backdrop & edge calligraphic seal.
+ * Performance Optimizations:
+ * 1. Device-adaptive DPR (capped at 1.35 on desktop, 1.0 on mobile) to eliminate fill-rate choking.
+ * 2. Pauses WebGL rendering loop when document is hidden / tab inactive.
+ * 3. GPU-isolated compositing layer via translateZ(0) and will-change.
+ * 4. Memoized to avoid React re-renders when parent scroll state updates.
  */
-export default function KageBackground() {
-  const [webglSupported, setWebglSupported] = useState(true);
-
-  // Check WebGL availability
-  useEffect(() => {
+function KageBackground() {
+  const [webglSupported] = useState(() => {
+    if (typeof window === "undefined") return true;
     try {
       const canvas = document.createElement("canvas");
-      const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-      if (!gl) setWebglSupported(false);
+      return !!(canvas.getContext("webgl") || canvas.getContext("experimental-webgl"));
     } catch {
-      setWebglSupported(false);
+      return false;
     }
+  });
+
+  // Compute responsive, GPU-friendly source URL with capped DPR and quality flag
+  const sourceUrl = useMemo(() => {
+    if (typeof window === "undefined") return "/landing-pages/kage.html";
+    const isMobile = window.innerWidth <= 768 || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024);
+    const dpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.35);
+    const q = isMobile ? "low" : "high";
+    return `/landing-pages/kage.html?dpr=${dpr}&q=${q}&adapt=1`;
+  }, []);
+
+  // Forward tab visibility changes to pause Three.js rAF loop
+  useEffect(() => {
+    const handleVisibility = () => {
+      const iframe = document.querySelector(".kage-backdrop-wrapper iframe");
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage(document.hidden ? "pause" : "resume", "*");
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
   return (
@@ -38,12 +57,14 @@ export default function KageBackground() {
           pointerEvents: "none",
           overflow: "hidden",
           opacity: 1,
+          transform: "translateZ(0)",
+          willChange: "transform",
         }}
       >
         {webglSupported ? (
           <LandingPageFrame
             title="Kyoto Mountain Temple WebGL"
-            sourceUrl="/landing-pages/kage.html"
+            sourceUrl={sourceUrl}
             backgroundCanvasSelector="#gl"
             style={{
               position: "absolute",
@@ -80,3 +101,5 @@ export default function KageBackground() {
     </>
   );
 }
+
+export default memo(KageBackground);

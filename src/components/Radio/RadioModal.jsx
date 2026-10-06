@@ -23,13 +23,6 @@ export default function RadioModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
-  // Keep player sync
-  useEffect(() => {
-    return () => {
-      // Don't auto stop on close if user wants ambient audio playing
-    };
-  }, []);
-
   if (!isOpen) return null;
 
   const handleTogglePlay = () => {

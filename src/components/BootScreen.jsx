@@ -183,7 +183,7 @@ export default function BootScreen({ onComplete }) {
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#ff003c", boxShadow: "0 0 8px #ff003c" }} />
               MISSION // ENTERING WORLD MATRIX
             </span>
-            <span style={{ color: "var(--text-muted)" }}>SECTOR: DELHI-NCR // SV-01</span>
+            <span style={{ color: "var(--text-muted)" }}>SECTOR: CHANDIGARH, INDIA // SV-01</span>
           </div>
 
           {/* Center Operative Banner */}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import CharacterSprite from "./CharacterSprite";
 import CharacterDialogue from "./CharacterDialogue";
 import CharacterChat from "./CharacterChat/CharacterChat";
@@ -9,7 +9,7 @@ import {
 import { gameState } from "../../utils/gameState";
 import "./character.css";
 
-export default function InteractiveCharacter({ activeSection = "hero" }) {
+function InteractiveCharacter({ activeSection = "hero" }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [viewState, setViewState] = useState("FRONT");
   const [dialogue, setDialogue] = useState(() => {
@@ -26,11 +26,16 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
   const [showCallout, setShowCallout] = useState(true);
 
   const anchorRef = useRef(null);
+  const lastGazeRef = useRef("FRONT");
+  const centerPosRef = useRef({ x: 0, y: 0, valid: false });
+  const rafGazeRef = useRef(null);
+
   const isTouchDevice = useRef(
     typeof window !== "undefined" &&
       ("ontouchstart" in window ||
         navigator.maxTouchPoints > 0 ||
         window.matchMedia("(pointer: coarse)").matches ||
+        window.matchMedia("(max-width: 768px)").matches ||
         window.innerWidth <= 768)
   );
 
@@ -74,29 +79,56 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
     }
   }, [activeSection, isChatOpen]);
 
-  // Subtle cursor gaze tracking when chat is CLOSED on desktop
+  // Optimized cursor gaze tracking when chat is CLOSED on desktop
   useEffect(() => {
     if (isChatOpen || isTouchDevice.current) {
+      lastGazeRef.current = "FRONT";
       const timer = setTimeout(() => setViewState("FRONT"), 0);
       return () => clearTimeout(timer);
     }
 
-    const onMouseMove = (e) => {
+    const updateCenter = () => {
       if (!anchorRef.current) return;
       const rect = anchorRef.current.getBoundingClientRect();
-      const charCenterX = rect.left + rect.width / 2;
-      const charCenterY = rect.top + rect.height / 2;
+      centerPosRef.current = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+        valid: true
+      };
+    };
 
-      const deltaX = e.clientX - charCenterX;
-      const deltaY = e.clientY - charCenterY;
+    updateCenter();
+    window.addEventListener("resize", updateCenter, { passive: true });
+    window.addEventListener("scroll", updateCenter, { passive: true });
 
-      // Subtle directional gaze
+    let latestEvent = null;
+    const processGaze = () => {
+      if (!latestEvent || !centerPosRef.current.valid) return;
+      const deltaX = latestEvent.clientX - centerPosRef.current.x;
+      const deltaY = latestEvent.clientY - centerPosRef.current.y;
       const gaze = calculateCursorGazeDirection(deltaX, deltaY);
-      setViewState(gaze);
+
+      if (gaze !== lastGazeRef.current) {
+        lastGazeRef.current = gaze;
+        setViewState(gaze);
+      }
+      rafGazeRef.current = null;
+    };
+
+    const onMouseMove = (e) => {
+      latestEvent = e;
+      if (!rafGazeRef.current) {
+        rafGazeRef.current = requestAnimationFrame(processGaze);
+      }
     };
 
     window.addEventListener("mousemove", onMouseMove, { passive: true });
-    return () => window.removeEventListener("mousemove", onMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("resize", updateCenter);
+      window.removeEventListener("scroll", updateCenter);
+      if (rafGazeRef.current) cancelAnimationFrame(rafGazeRef.current);
+    };
   }, [isChatOpen]);
 
   // Close on Escape key
@@ -164,3 +196,5 @@ export default function InteractiveCharacter({ activeSection = "hero" }) {
     </div>
   );
 }
+
+export default memo(InteractiveCharacter);

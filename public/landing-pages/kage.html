@@ -2271,7 +2271,7 @@ const HI = qs('q', COARSE ? 'low' : 'high');
 const LOW = HI === 'low';
 const WANT_POST    = qs('post', '1') !== '0';
 const WANT_SHADOW  = qs('shadow', LOW ? '0' : '1') !== '0';
-const DPR_CAP      = qn('dpr', LOW ? 1.4 : 1.8);
+const DPR_CAP      = Math.min(qn('dpr', LOW ? 1.15 : 1.35), 1.5);
 /* the renderer trades resolution for frame rate on its own — the scene is
    fill-bound (five big alpha-blended veils plus a bloom chain), so pixels
    are the only knob worth turning on unknown hardware */
@@ -3941,9 +3941,9 @@ function initPost() {
   if (!WANT_POST) return;
   const w = renderer.domElement.width, h = renderer.domElement.height;
   const O = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, type: THREE.HalfFloatType, depthBuffer: false, stencilBuffer: false };
-  POST.scene = new THREE.WebGLRenderTarget(w, h, Object.assign({}, O, { depthBuffer: true, samples: LOW ? 0 : 2 }));
+  POST.scene = new THREE.WebGLRenderTarget(w, h, Object.assign({}, O, { depthBuffer: true, samples: 0 }));
   let lw = Math.max(2, w >> 1), lh = Math.max(2, h >> 1);
-  const N = 4;
+  const N = LOW ? 2 : 3;
   for (let i = 0; i < N; i++) {
     POST.levels.push({ a: new THREE.WebGLRenderTarget(lw, lh, O), b: new THREE.WebGLRenderTarget(lw, lh, O), w: lw, h: lh });
     lw = Math.max(2, lw >> 1); lh = Math.max(2, lh >> 1);
@@ -4531,7 +4531,7 @@ function cardAlpha(el) {
   return a;
 }
 function renderCards(rt) {
-  if (!CARDS.length) return;
+  if (!CARDS.length || document.documentElement.getAttribute('data-threeui-presentation') === 'background') return;
   let drew = false;
   for (let i = 0; i < CARDS.length; i++) {
     const C = CARDS[i], r = C.el.getBoundingClientRect();
@@ -4790,6 +4790,12 @@ function start() {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { running = false; }
     else if (!running) { running = true; tPrev = performance.now(); queue(); }
+  });
+  window.addEventListener('message', (e) => {
+    if (e.data === 'pause') { running = false; }
+    else if (e.data === 'resume') {
+      if (!running && !document.hidden) { running = true; tPrev = performance.now(); queue(); }
+    }
   });
   resize();
 

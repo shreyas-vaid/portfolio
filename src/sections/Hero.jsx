@@ -1,4 +1,4 @@
-import { ArrowDown, FileText, ChevronRight, Terminal } from "lucide-react";
+import { FileText, ChevronRight } from "lucide-react";
 import CharacterStats from "../components/CharacterStats";
 import { profileData } from "../data/profile";
 import { playHoverSound, playSelectSound } from "../utils/sound";

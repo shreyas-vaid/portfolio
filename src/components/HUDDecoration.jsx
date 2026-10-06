@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { setSoundEnabled, getSoundEnabled, playSelectSound, playHoverSound } from "../utils/sound";
 import { gameState } from "../utils/gameState";
@@ -19,22 +19,9 @@ const hudBtnStyle = {
   transition: "all var(--transition-fast)"
 };
 
-export default function HUDDecoration({
-  onOpenInventory,
-  onOpenRadio,
-  onOpenTerminal,
-  onOpenAchievements
-}) {
-  const [soundOn, setSoundOn] = useState(() => getSoundEnabled());
+// Isolated clock component so the 1-second interval only re-renders this text node
+const HUDClock = memo(function HUDClock() {
   const [time, setTime] = useState("");
-  const [st, setSt] = useState(gameState.state);
-
-  useEffect(() => {
-    const unsub = gameState.subscribe((newState) => {
-      setSt(newState);
-    });
-    return unsub;
-  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -44,6 +31,25 @@ export default function HUDDecoration({
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  return <span>{time} UTC</span>;
+});
+
+function HUDDecoration({
+  onOpenInventory,
+  onOpenRadio,
+  onOpenTerminal,
+  onOpenAchievements
+}) {
+  const [soundOn, setSoundOn] = useState(() => getSoundEnabled());
+  const [st, setSt] = useState(gameState.state);
+
+  useEffect(() => {
+    const unsub = gameState.subscribe((newState) => {
+      setSt(newState);
+    });
+    return unsub;
   }, []);
 
   const toggleSound = () => {
@@ -105,7 +111,7 @@ export default function HUDDecoration({
           <span>SYS_BUILD: 2026.09</span>
         </div>
 
-        {/* Center: Tactical Quick-Tools (Cleanly placed in the top bar with 0 overlap!) */}
+        {/* Center: Tactical Quick-Tools */}
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <span style={{ fontSize: "0.62rem", color: "var(--accent-red-bright)", fontWeight: 700, letterSpacing: "0.08em", marginRight: "2px" }}>
             TOOLS //
@@ -181,7 +187,7 @@ export default function HUDDecoration({
 
         {/* Right: Realtime Clock & Sound Toggle */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <span>{time} UTC</span>
+          <HUDClock />
 
           {/* Sound Toggle */}
           <button
@@ -210,3 +216,5 @@ export default function HUDDecoration({
     </>
   );
 }
+
+export default memo(HUDDecoration);

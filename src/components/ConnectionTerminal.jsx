@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Send, CheckCircle, Mail } from "lucide-react";
+import { Send, Mail } from "lucide-react";
 import { GithubIcon, LinkedinIcon, InstagramIcon } from "./SocialIcons";
 import { socialLinks } from "../data/socials";
 import { playConfirmSound, playHoverSound } from "../utils/sound";

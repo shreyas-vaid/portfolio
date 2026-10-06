@@ -35,7 +35,7 @@ export default function Quests() {
         }}
       >
         {questProjects.map((quest) => (
-          <QuestCard key={quest.id} quest={quest} onSelect={(q) => setSelectedQuest(q)} />
+          <QuestCard key={quest.id} quest={quest} onSelect={setSelectedQuest} />
         ))}
       </div>
 

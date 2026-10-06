@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ExternalLink, CheckCircle2, AlertTriangle, Star } from "lucide-react";
+import { X, ExternalLink } from "lucide-react";
 import { GithubIcon } from "./SocialIcons";
 import { playHoverSound, playSelectSound } from "../utils/sound";
 

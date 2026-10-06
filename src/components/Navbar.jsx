@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Menu, X, Volume2, VolumeX } from "lucide-react";
 import { playHoverSound, playSelectSound, getSoundEnabled, setSoundEnabled } from "../utils/sound";
 import { gameState } from "../utils/gameState";
@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { id: "contact", number: "07", label: "CONTACT" }
 ];
 
-export default function Navbar({
+function Navbar({
   activeSection,
   onOpenInventory,
   onOpenRadio,
@@ -198,3 +198,4 @@ export default function Navbar({
   );
 }
 
+export default memo(Navbar);

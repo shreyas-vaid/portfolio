@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
 
 export default function CustomCursor() {
-  const [mousePosition, setMousePosition] = useState({ x: -100, y: -100 });
-  const [cursorText, setCursorText] = useState("");
-  const [isHovered, setIsHovered] = useState(false);
+  const [cursorState, setCursorState] = useState({ isHovered: false, text: "" });
+  const dotRef = useRef(null);
+  const ringRef = useRef(null);
+  const posRef = useRef({ x: -100, y: -100, targetX: -100, targetY: -100 });
+  const isHoveredRef = useRef(false);
+  const rafRef = useRef(null);
+
   const [isTouchDevice] = useState(() => {
     if (typeof window === "undefined") return false;
     return (
@@ -19,59 +22,99 @@ export default function CustomCursor() {
   useEffect(() => {
     if (isTouchDevice) return;
 
-    const onMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+    // Smooth ring interpolation loop (runs strictly on RAF, zero React renders)
+    const animate = () => {
+      const pos = posRef.current;
+      pos.x += (pos.targetX - pos.x) * 0.22;
+      pos.y += (pos.targetY - pos.y) * 0.22;
 
-      // Check target for custom cursor label
-      const target = e.target.closest("[data-cursor], button, a, input, textarea, select");
-      if (target) {
-        setIsHovered(true);
-        const customLabel = target.getAttribute("data-cursor");
-        if (customLabel) {
-          setCursorText(customLabel);
-        } else if (target.tagName === "A" || target.tagName === "BUTTON") {
-          setCursorText("ACCESS");
-        } else if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-          setCursorText("INPUT");
+      const hovered = isHoveredRef.current;
+      const offset = hovered ? 24 : 12;
+
+      if (ringRef.current) {
+        ringRef.current.style.transform = `translate3d(${pos.x - offset}px, ${pos.y - offset}px, 0)`;
+      }
+      rafRef.current = requestAnimationFrame(animate);
+    };
+    rafRef.current = requestAnimationFrame(animate);
+
+    let lastCheckTime = 0;
+    const onMouseMove = (e) => {
+      const x = e.clientX;
+      const y = e.clientY;
+      posRef.current.targetX = x;
+      posRef.current.targetY = y;
+
+      // Direct instant dot positioning without React state
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate3d(${x - 3}px, ${y - 3}px, 0)`;
+      }
+
+      // Throttle DOM target inspection to ~30ms to avoid DOM queries on every subpixel
+      const now = performance.now();
+      if (now - lastCheckTime > 32) {
+        lastCheckTime = now;
+        const target = e.target.closest("[data-cursor], button, a, input, textarea, select");
+        if (target) {
+          isHoveredRef.current = true;
+          let text = "";
+          const customLabel = target.getAttribute("data-cursor");
+          if (customLabel) {
+            text = customLabel;
+          } else if (target.tagName === "A" || target.tagName === "BUTTON") {
+            text = "ACCESS";
+          } else if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+            text = "INPUT";
+          }
+          setCursorState((prev) => {
+            if (prev.isHovered && prev.text === text) return prev;
+            return { isHovered: true, text };
+          });
         } else {
-          setCursorText("");
+          isHoveredRef.current = false;
+          setCursorState((prev) => {
+            if (!prev.isHovered && prev.text === "") return prev;
+            return { isHovered: false, text: "" };
+          });
         }
-      } else {
-        setIsHovered(false);
-        setCursorText("");
       }
     };
 
-    window.addEventListener("mousemove", onMouseMove);
-    return () => window.removeEventListener("mousemove", onMouseMove);
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, [isTouchDevice]);
 
   if (isTouchDevice) return null;
 
+  const { isHovered, text } = cursorState;
+  const ringSize = isHovered ? 48 : 24;
+
   return (
     <div style={{ pointerEvents: "none", position: "fixed", inset: 0, zIndex: 9999 }}>
       {/* Outer reticle / ring */}
-      <motion.div
-        animate={{
-          x: mousePosition.x - (isHovered ? 24 : 12),
-          y: mousePosition.y - (isHovered ? 24 : 12),
-          width: isHovered ? 48 : 24,
-          height: isHovered ? 48 : 24,
-          borderColor: isHovered ? "#ff003c" : "rgba(255, 255, 255, 0.4)",
-          backgroundColor: isHovered ? "rgba(255, 0, 60, 0.1)" : "transparent",
-        }}
-        transition={{ type: "spring", damping: 25, stiffness: 350, mass: 0.5 }}
+      <div
+        ref={ringRef}
         style={{
           position: "fixed",
-          border: "1.5px solid",
+          top: 0,
+          left: 0,
+          width: ringSize,
+          height: ringSize,
+          border: `1.5px solid ${isHovered ? "#ff003c" : "rgba(255, 255, 255, 0.4)"}`,
+          backgroundColor: isHovered ? "rgba(255, 0, 60, 0.1)" : "transparent",
           borderRadius: "50%",
           pointerEvents: "none",
           display: "flex",
           alignItems: "center",
-          justifyContent: "center"
+          justifyContent: "center",
+          willChange: "transform",
+          transition: "width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background-color 0.2s ease",
         }}
       >
-        {cursorText && (
+        {text && (
           <span
             style={{
               position: "absolute",
@@ -89,27 +132,27 @@ export default function CustomCursor() {
               whiteSpace: "nowrap"
             }}
           >
-            {cursorText}
+            {text}
           </span>
         )}
-      </motion.div>
+      </div>
 
       {/* Inner precise dot */}
-      <motion.div
-        animate={{
-          x: mousePosition.x - 3,
-          y: mousePosition.y - 3,
-          scale: isHovered ? 1.5 : 1,
-        }}
-        transition={{ type: "spring", damping: 40, stiffness: 600, mass: 0.1 }}
+      <div
+        ref={dotRef}
         style={{
           position: "fixed",
+          top: 0,
+          left: 0,
           width: 6,
           height: 6,
           borderRadius: "50%",
           backgroundColor: isHovered ? "#ff003c" : "#ffffff",
+          transform: isHovered ? "scale(1.5)" : "scale(1)",
+          boxShadow: isHovered ? "0 0 8px #ff003c" : "none",
           pointerEvents: "none",
-          boxShadow: isHovered ? "0 0 8px #ff003c" : "none"
+          willChange: "transform",
+          transition: "background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease"
         }}
       />
     </div>
