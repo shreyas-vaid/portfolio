@@ -3,10 +3,10 @@ import { AnimatePresence } from "framer-motion";
 import "./App.css";
 import "./experiments/kage-hybrid/kageHybrid.css";
 
-// Kage 60/40 Hybrid Experiment
-import KageHybridApp from "./experiments/kage-hybrid/KageHybridApp";
+// 3D WebGL Kyoto Temple background & atmospheric mist layer
+import KageBackground from "./experiments/kage-hybrid/KageBackground";
 
-// Components
+// Core Experience Components
 import BootScreen from "./components/BootScreen";
 import CustomCursor from "./components/CustomCursor";
 import HUDDecoration from "./components/HUDDecoration";
@@ -14,7 +14,7 @@ import Navbar from "./components/Navbar";
 import InteractiveCharacter from "./components/InteractiveCharacter/InteractiveCharacter";
 import Footer from "./components/Footer";
 
-// Game Layer Components
+// Game Layer Modals & Overlays
 import InventoryModal from "./components/Inventory/InventoryModal";
 import RadioModal from "./components/Radio/RadioModal";
 import TerminalModal from "./components/Terminal/TerminalModal";
@@ -36,16 +36,6 @@ import Contact from "./sections/Contact";
 const SECTIONS = ["hero", "identity", "abilities", "quests", "experience", "achievements", "contact"];
 
 function App() {
-  // Feature flag / isolated route detection
-  const [isKageRoute, setIsKageRoute] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return (
-      window.location.pathname.startsWith("/kage-test") ||
-      window.location.search.includes("kage=true") ||
-      import.meta.env.VITE_KAGE_EXPERIMENT === "true"
-    );
-  });
-
   const [bootComplete, setBootComplete] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
 
@@ -56,31 +46,6 @@ function App() {
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [isThemeBannerOpen, setIsThemeBannerOpen] = useState(false);
 
-  // Listen to popstate for navigation between / and /kage-test
-  useEffect(() => {
-    const checkRoute = () => {
-      setIsKageRoute(
-        window.location.pathname.startsWith("/kage-test") ||
-        window.location.search.includes("kage=true") ||
-        import.meta.env.VITE_KAGE_EXPERIMENT === "true"
-      );
-    };
-
-    window.addEventListener("popstate", checkRoute);
-    return () => window.removeEventListener("popstate", checkRoute);
-  }, []);
-
-  const navigateToKage = (e) => {
-    e?.preventDefault();
-    window.history.pushState({}, "", "/kage-test");
-    setIsKageRoute(true);
-  };
-
-  const navigateToStandard = () => {
-    window.history.pushState({}, "", "/");
-    setIsKageRoute(false);
-  };
-
   // Initialize theme from saved state
   useEffect(() => {
     gameState.setTheme(gameState.state.activeTheme || "red");
@@ -88,7 +53,6 @@ function App() {
 
   // Track active section for navbar highlighting
   useEffect(() => {
-    if (isKageRoute) return;
     const handleScroll = () => {
       const scrollPos = window.scrollY + 200;
       for (let i = SECTIONS.length - 1; i >= 0; i--) {
@@ -102,16 +66,13 @@ function App() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isKageRoute]);
+  }, []);
 
-  // If on /kage-test, render the isolated 60/40 Hybrid experiment
-  if (isKageRoute) {
-    return <KageHybridApp onExitExperiment={navigateToStandard} />;
-  }
-
-  // Otherwise render the 100% UNCHANGED original portfolio
   return (
-    <div className="app-root">
+    <div className="app-root kage-hybrid-root">
+      {/* 3D WebGL Kyoto Mountain Temple & Atmospheric Mist Layer with 什雷亚斯 Environmental Identity */}
+      <KageBackground />
+
       {/* Boot Experience */}
       <AnimatePresence>
         {!bootComplete && (
@@ -149,13 +110,26 @@ function App() {
       <InteractiveCharacter activeSection={activeSection} />
 
       {/* Main Tactical Layout */}
-      <main className="main-content-layout">
+      <main className="main-content-layout" style={{ position: "relative", zIndex: 10 }}>
+        {/* HERO */}
         <Hero />
+
+        {/* IDENTITY */}
         <Identity />
+
+        {/* ABILITIES / SKILLFORGE */}
         <Abilities />
+
+        {/* QUESTS / PROJECTS */}
         <Quests />
+
+        {/* EXPERIENCE */}
         <Experience />
+
+        {/* ACHIEVEMENTS */}
         <Achievements />
+
+        {/* CONTACT */}
         <Contact />
       </main>
 
@@ -180,17 +154,6 @@ function App() {
         isOpen={isAchievementsOpen}
         onClose={() => setIsAchievementsOpen(false)}
       />
-
-      {/* Safe Local Switcher Pill to explore 60/40 Kage Hybrid */}
-      <a
-        href="/kage-test"
-        onClick={navigateToKage}
-        className="kage-switch-pill"
-        data-cursor="EXPERIMENT"
-        title="Explore Local-Only 60/40 Kage Hybrid (什雷亚斯)"
-      >
-        <span>⛩️ 什雷亚斯 // 60/40 HYBRID</span>
-      </a>
 
       {/* Cyber Editorial Minimal Footer */}
       <Footer />
